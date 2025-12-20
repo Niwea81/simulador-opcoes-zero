@@ -13,15 +13,15 @@ body {
 }
 
 .container {
-  max-width: 720px;
-  margin: 60px auto;
+  max-width: 900px;
+  margin: 40px auto;
   background: #020617;
   padding: 30px;
   border-radius: 14px;
   box-shadow: 0 0 25px rgba(0,0,0,.6);
 }
 
-h1 {
+h1, h2 {
   text-align: center;
   color: #facc15;
 }
@@ -57,18 +57,24 @@ button:hover {
   background: #1d4ed8;
 }
 
-.resultado {
-  margin-top: 30px;
+.section {
+  margin-top: 40px;
   padding: 20px;
   background: #020024;
+  border-radius: 12px;
+}
+
+canvas {
+  background: #020617;
   border-radius: 10px;
-  line-height: 1.6;
+  margin-top: 20px;
 }
 
 .alerta {
-  margin-top: 15px;
+  margin-top: 20px;
   color: #f87171;
   font-weight: bold;
+  text-align: center;
 }
 </style>
 </head>
@@ -100,11 +106,31 @@ button:hover {
 
 <button onclick="analisar()">Analisar Cenário</button>
 
-<div id="saida" class="resultado"></div>
+<!-- AULA GUIADA -->
+<div id="aula" class="section"></div>
+
+<!-- PAYOFF -->
+<div class="section">
+  <h2>📈 Payoff Educacional</h2>
+  <canvas id="payoff" width="800" height="300"></canvas>
+</div>
+
+<!-- TRADINGVIEW -->
+<div class="section">
+  <h2>📉 Gráfico do Ativo (TradingView)</h2>
+  <iframe
+    src="https://s.tradingview.com/widgetembed/?symbol=SPY&interval=60&theme=dark"
+    width="100%"
+    height="400"
+    frameborder="0"
+    allowfullscreen>
+  </iframe>
+</div>
 
 <p class="alerta">
 ⚠️ Ferramenta educacional. Não é recomendação de investimento.
 </p>
+
 </div>
 
 <script>
@@ -112,57 +138,21 @@ function analisar() {
 
   const tendencia = document.getElementById("tendencia").value;
   const vol = document.getElementById("vol").value;
-  const dte = Number(document.getElementById("dte").value);
   const preco = Number(document.getElementById("preco").value);
 
   let estrutura = "";
-  let strikes = "";
-  let prob = "";
-  let comentario = "";
+  let explicacao = "";
 
   if (tendencia === "alta" && vol !== "alta") {
     estrutura = "Put Credit Spread";
-    strikes = `Venda PUT entre ${Math.round(preco*0.95)} e ${Math.round(preco*0.93)}`;
-    prob = "65% a 75%";
-    comentario = "Cenário favorável: tendência de alta e volatilidade controlada.";
+    explicacao = `
+    <h2>🧠 Aula Guiada</h2>
+    <p>O mercado apresenta <b>tendência de alta</b> com volatilidade controlada.</p>
+    <p>Nesse cenário, traders conservadores costumam vender PUTs fora do preço,
+    apostando que o ativo <b>não cairá</b> até o vencimento.</p>
+    <p>O foco não é prever topo, mas sim <b>probabilidade</b>.</p>
+    `;
+    desenharPayoff(preco, -1);
   }
 
   else if (tendencia === "baixa" && vol !== "alta") {
-    estrutura = "Call Credit Spread";
-    strikes = `Venda CALL entre ${Math.round(preco*1.05)} e ${Math.round(preco*1.07)}`;
-    prob = "65% a 75%";
-    comentario = "Cenário favorável para estruturas de crédito na queda.";
-  }
-
-  else if (tendencia === "lateral" && vol === "alta") {
-    estrutura = "Iron Condor (educacional)";
-    strikes = "Venda fora do preço atual, ambos os lados";
-    prob = "60% a 70%";
-    comentario = "Atenção: volatilidade alta exige gerenciamento ativo.";
-  }
-
-  else {
-    estrutura = "Nenhuma estrutura recomendada";
-    strikes = "-";
-    prob = "Baixa";
-    comentario = "Cenário desfavorável. Melhor estudar ou aguardar.";
-  }
-
-  document.getElementById("saida").innerHTML = `
-  <h3>📌 Estrutura Sugerida</h3>
-  <b>${estrutura}</b>
-
-  <h3>🎯 Região de Strikes</h3>
-  ${strikes}
-
-  <h3>📈 Probabilidade Estimada</h3>
-  ${prob}
-
-  <h3>🧠 Leitura Educacional</h3>
-  ${comentario}
-  `;
-}
-</script>
-
-</body>
-</html>
