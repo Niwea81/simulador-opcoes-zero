@@ -53,21 +53,18 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background: #1d4ed8;
-}
-
 .section {
-  margin-top: 40px;
+  margin-top: 35px;
   padding: 20px;
   background: #020024;
   border-radius: 12px;
 }
 
 canvas {
+  width: 100%;
+  height: 280px;
   background: #020617;
   border-radius: 10px;
-  margin-top: 20px;
 }
 
 .alerta {
@@ -83,6 +80,14 @@ canvas {
 
 <div class="container">
 <h1>📊 Simulador Educacional de Opções</h1>
+
+<label>Ativo</label>
+<select id="ativo">
+  <option value="SPY">SPY</option>
+  <option value="SPX">SPX</option>
+  <option value="QQQ">QQQ</option>
+  <option value="AAPL">AAPL</option>
+</select>
 
 <label>Tendência do Mercado</label>
 <select id="tendencia">
@@ -106,20 +111,19 @@ canvas {
 
 <button onclick="analisar()">Analisar Cenário</button>
 
-<!-- AULA GUIADA -->
-<div id="aula" class="section"></div>
+<!-- RESULTADO EDUCACIONAL -->
+<div id="resultado" class="section"></div>
 
 <!-- PAYOFF -->
 <div class="section">
   <h2>📈 Payoff Educacional</h2>
-  <canvas id="payoff" width="800" height="300"></canvas>
+  <canvas id="payoff"></canvas>
 </div>
 
-<!-- TRADINGVIEW -->
+<!-- TRADINGVIEW (ISOLADO) -->
 <div class="section">
-  <h2>📉 Gráfico do Ativo (TradingView)</h2>
-  <iframe
-    src="https://s.tradingview.com/widgetembed/?symbol=SPY&interval=60&theme=dark"
+  <h2>📉 Gráfico do Ativo</h2>
+  <iframe id="tv"
     width="100%"
     height="400"
     frameborder="0"
@@ -130,57 +134,64 @@ canvas {
 <p class="alerta">
 ⚠️ Ferramenta educacional. Não é recomendação de investimento.
 </p>
-
 </div>
 
 <script>
 function analisar() {
 
+  const ativo = document.getElementById("ativo").value;
   const tendencia = document.getElementById("tendencia").value;
   const vol = document.getElementById("vol").value;
   const preco = Number(document.getElementById("preco").value);
 
   let estrutura = "";
-  let explicacao = "";
+  let strikes = "";
+  let prob = "";
+  let aula = "";
+  let direcao = 0;
 
   if (tendencia === "alta" && vol !== "alta") {
     estrutura = "Put Credit Spread";
-    explicacao = `
-    <h2>🧠 Aula Guiada</h2>
-    <p>O mercado apresenta <b>tendência de alta</b> com volatilidade controlada.</p>
-    <p>Nesse cenário, traders conservadores costumam vender PUTs fora do preço,
-    apostando que o ativo <b>não cairá</b> até o vencimento.</p>
-    <p>O foco não é prever topo, mas sim <b>probabilidade</b>.</p>
-    `;
-    desenharPayoff(preco, -1);
+    strikes = `Venda PUT entre ${Math.round(preco*0.95)} e ${Math.round(preco*0.93)}`;
+    prob = "65% a 75%";
+    aula = "Tendência de alta + volatilidade controlada favorecem estruturas de crédito na PUT.";
+    direcao = -1;
   }
-
   else if (tendencia === "baixa" && vol !== "alta") {
     estrutura = "Call Credit Spread";
-    explicacao = `
-    <h2>🧠 Aula Guiada</h2>
-    <p>O mercado apresenta <b>tendência de baixa</b>.</p>
-    <p>Estruturas de CALL vendidas se beneficiam da continuidade ou lateralização.</p>
-    `;
-    desenharPayoff(preco, 1);
+    strikes = `Venda CALL entre ${Math.round(preco*1.05)} e ${Math.round(preco*1.07)}`;
+    prob = "65% a 75%";
+    aula = "Tendência de baixa favorece venda de CALL fora do preço.";
+    direcao = 1;
   }
-
   else {
     estrutura = "Nenhuma estrutura recomendada";
-    explicacao = `
-    <h2>🧠 Aula Guiada</h2>
-    <p>O cenário atual apresenta risco elevado.</p>
-    <p>Em situações assim, o melhor trade é <b>não operar</b>.</p>
-    `;
-    desenharPayoff(preco, 0);
+    strikes = "-";
+    prob = "Baixa";
+    aula = "Cenário instável. A melhor decisão educacional é não operar.";
+    direcao = 0;
   }
 
-  document.getElementById("aula").innerHTML = explicacao;
+  document.getElementById("resultado").innerHTML = `
+    <h2>🧠 Aula Guiada</h2>
+    <p><b>Ativo:</b> ${ativo}</p>
+    <p><b>Estrutura:</b> ${estrutura}</p>
+    <p><b>Região de Strikes:</b> ${strikes}</p>
+    <p><b>Probabilidade estimada:</b> ${prob}</p>
+    <p>${aula}</p>
+  `;
+
+  desenharPayoff(preco, direcao);
+
+  document.getElementById("tv").src =
+    `https://s.tradingview.com/widgetembed/?symbol=${ativo}&interval=60&theme=dark`;
 }
 
 function desenharPayoff(preco, direcao) {
   const c = document.getElementById("payoff");
   const ctx = c.getContext("2d");
+  c.width = c.offsetWidth;
+  c.height = 280;
   ctx.clearRect(0,0,c.width,c.height);
 
   ctx.strokeStyle = "#22c55e";
@@ -188,16 +199,11 @@ function desenharPayoff(preco, direcao) {
   ctx.beginPath();
 
   for (let x = 0; x <= c.width; x++) {
-    const precoSimulado = preco - 20 + (x / c.width) * 40;
-    let y;
+    const p = preco - 20 + (x / c.width) * 40;
+    let y = c.height/2;
 
-    if (direcao === -1) {
-      y = c.height/2 - (precoSimulado - preco)*3;
-    } else if (direcao === 1) {
-      y = c.height/2 + (precoSimulado - preco)*3;
-    } else {
-      y = c.height/2;
-    }
+    if (direcao === -1) y -= (p - preco) * 3;
+    if (direcao === 1) y += (p - preco) * 3;
 
     if (x === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
