@@ -1,36 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Simulador de Opções</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .box {
-      background: #020617;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
-    }
-    h1 {
-      color: #facc15;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Simulador Educacional de Opções</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #020617, #020024);
+  color: #e5e7eb;
+}
+
+.container {
+  max-width: 720px;
+  margin: 60px auto;
+  background: #020617;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(0,0,0,.6);
+}
+
+h1 {
+  text-align: center;
+  color: #facc15;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 25px;
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.resultado {
+  margin-top: 30px;
+  padding: 20px;
+  background: #020024;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.alerta {
+  margin-top: 15px;
+  color: #f87171;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
-  <div class="box">
-    <h1>🔥 Funcionou!</h1>
-    <p>GitHub Pages está ativo.</p>
-    <p>Agora sim podemos colocar a calculadora 😄</p>
-  </div>
-</body>
-</html>
+
+<div class="container">
+<h1>📊 Simulador Educacional de Opções</h1>
+
+<label>Tendência do Mercado</label>
+<select id="tendencia">
+  <option value="alta">Alta</option>
+  <option value="lateral">Lateral</option>
+  <option value="baixa">Baixa</option>
+</select>
+
+<label>Volatilidade</label>
+<select id="vol">
+  <option value="baixa">Baixa</option>
+  <option value="media">
