@@ -156,3 +156,56 @@ function analisar() {
   }
 
   else if (tendencia === "baixa" && vol !== "alta") {
+    estrutura = "Call Credit Spread";
+    explicacao = `
+    <h2>🧠 Aula Guiada</h2>
+    <p>O mercado apresenta <b>tendência de baixa</b>.</p>
+    <p>Estruturas de CALL vendidas se beneficiam da continuidade ou lateralização.</p>
+    `;
+    desenharPayoff(preco, 1);
+  }
+
+  else {
+    estrutura = "Nenhuma estrutura recomendada";
+    explicacao = `
+    <h2>🧠 Aula Guiada</h2>
+    <p>O cenário atual apresenta risco elevado.</p>
+    <p>Em situações assim, o melhor trade é <b>não operar</b>.</p>
+    `;
+    desenharPayoff(preco, 0);
+  }
+
+  document.getElementById("aula").innerHTML = explicacao;
+}
+
+function desenharPayoff(preco, direcao) {
+  const c = document.getElementById("payoff");
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+
+  ctx.strokeStyle = "#22c55e";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+
+  for (let x = 0; x <= c.width; x++) {
+    const precoSimulado = preco - 20 + (x / c.width) * 40;
+    let y;
+
+    if (direcao === -1) {
+      y = c.height/2 - (precoSimulado - preco)*3;
+    } else if (direcao === 1) {
+      y = c.height/2 + (precoSimulado - preco)*3;
+    } else {
+      y = c.height/2;
+    }
+
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+
+  ctx.stroke();
+}
+</script>
+
+</body>
+</html>
