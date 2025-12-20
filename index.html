@@ -12,7 +12,7 @@ body {
   color: #e5e7eb;
 }
 .container {
-  max-width: 950px;
+  max-width: 900px;
   margin: 40px auto;
   background: #020617;
   padding: 30px;
@@ -43,9 +43,10 @@ button {
   border-radius: 8px;
   border: none;
   color: white;
+  cursor: pointer;
 }
 .section {
-  margin-top: 35px;
+  margin-top: 30px;
   padding: 20px;
   background: #020024;
   border-radius: 12px;
@@ -53,8 +54,6 @@ button {
 canvas {
   width: 100%;
   height: 260px;
-  background: #020617;
-  border-radius: 10px;
 }
 </style>
 </head>
@@ -62,7 +61,7 @@ canvas {
 <body>
 
 <div class="container">
-<h1>📊 Plataforma Educacional de Opções</h1>
+<h1>📊 Simulador Educacional de Opções</h1>
 
 <label>Ativo</label>
 <select id="ativo">
@@ -89,29 +88,45 @@ canvas {
   <option value="put">Put</option>
 </select>
 
-<button onclick="calcular()">Calcular & Analisar Trade</button>
+<button onclick="calcular()">📈 Calcular & Analisar</button>
 
 <div id="resultado" class="section"></div>
 
 <div class="section">
-  <h2>📈 Payoff</h2>
+  <h2>Payoff</h2>
   <canvas id="payoff"></canvas>
 </div>
 
 <div class="section">
-  <h2>📉 Gráfico do Ativo</h2>
+  <h2>Gráfico do Ativo</h2>
   <iframe id="tv" width="100%" height="400" frameborder="0"></iframe>
 </div>
 
 </div>
 
 <script>
+function erf(x) {
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const p = 0.3275911;
+
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x));
+
+  return sign * y;
+}
+
 function N(x) {
-  return 0.5 * (1 + Math.erf(x / Math.sqrt(2)));
+  return 0.5 * (1 + erf(x / Math.sqrt(2)));
 }
 
 function calcular() {
-
   const S = +document.getElementById("S").value;
   const K = +document.getElementById("K").value;
   const T = document.getElementById("T").value / 365;
@@ -129,38 +144,32 @@ function calcular() {
     delta = N(d1);
   } else {
     preco = K*Math.exp(-r*T)*N(-d2) - S*N(-d1);
-    delta = N(d1)-1;
+    delta = N(d1) - 1;
   }
 
-  let perfil = "";
-  let zona = "";
+  let perfil = "Conservador";
+  let zona = "OTM";
 
-  const absDelta = Math.abs(delta);
-
-  if (absDelta < 0.25) {
-    perfil = "🟢 Conservador";
-    zona = "OTM";
-  } else if (absDelta < 0.45) {
-    perfil = "🟡 Moderado";
-    zona = "ATM";
-  } else {
-    perfil = "🔴 Agressivo";
+  if (Math.abs(delta) > 0.45) {
+    perfil = "Agressivo";
     zona = "ITM";
+  } else if (Math.abs(delta) > 0.25) {
+    perfil = "Moderado";
+    zona = "ATM";
   }
 
   document.getElementById("resultado").innerHTML = `
-    <h2>🧠 Análise Educacional</h2>
-    <p><b>Preço Teórico (Black-Scholes):</b> $${preco.toFixed(2)}</p>
+    <h2>Análise Educacional</h2>
+    <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
     <p><b>Delta:</b> ${delta.toFixed(2)}</p>
     <p><b>Moneyness:</b> ${zona}</p>
-    <p><b>Perfil de Trade:</b> ${perfil}</p>
-    <p>⚠️ Trades agressivos têm maior risco direcional e emocional.</p>
+    <p><b>Perfil:</b> ${perfil}</p>
   `;
-
-  desenharPayoff(S, K, tipo);
 
   document.getElementById("tv").src =
    `https://s.tradingview.com/widgetembed/?symbol=${document.getElementById("ativo").value}&interval=60&theme=dark`;
+
+  desenharPayoff(S, K, tipo);
 }
 
 function desenharPayoff(S, K, tipo) {
@@ -176,15 +185,10 @@ function desenharPayoff(S, K, tipo) {
 
   for (let x = 0; x <= c.width; x++) {
     const p = S - 30 + (x/c.width)*60;
-    let payoff = 0;
-
-    if (tipo === "call") payoff = Math.max(p - K, 0);
-    else payoff = Math.max(K - p, 0);
-
+    let payoff = tipo === "call" ? Math.max(p-K,0) : Math.max(K-p,0);
     const y = c.height - payoff*4 - 40;
-
-    if (x === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (x === 0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
   }
   ctx.stroke();
 }
@@ -192,5 +196,4 @@ function desenharPayoff(S, K, tipo) {
 
 </body>
 </html>
-
 
