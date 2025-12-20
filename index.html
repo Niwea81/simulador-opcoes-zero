@@ -88,4 +88,81 @@ button:hover {
 <label>Volatilidade</label>
 <select id="vol">
   <option value="baixa">Baixa</option>
-  <option value="media">
+  <option value="media">Média</option>
+  <option value="alta">Alta</option>
+</select>
+
+<label>Dias até o vencimento (DTE)</label>
+<input type="number" id="dte" value="7">
+
+<label>Preço atual do ativo</label>
+<input type="number" id="preco" value="100">
+
+<button onclick="analisar()">Analisar Cenário</button>
+
+<div id="saida" class="resultado"></div>
+
+<p class="alerta">
+⚠️ Ferramenta educacional. Não é recomendação de investimento.
+</p>
+</div>
+
+<script>
+function analisar() {
+
+  const tendencia = document.getElementById("tendencia").value;
+  const vol = document.getElementById("vol").value;
+  const dte = Number(document.getElementById("dte").value);
+  const preco = Number(document.getElementById("preco").value);
+
+  let estrutura = "";
+  let strikes = "";
+  let prob = "";
+  let comentario = "";
+
+  if (tendencia === "alta" && vol !== "alta") {
+    estrutura = "Put Credit Spread";
+    strikes = `Venda PUT entre ${Math.round(preco*0.95)} e ${Math.round(preco*0.93)}`;
+    prob = "65% a 75%";
+    comentario = "Cenário favorável: tendência de alta e volatilidade controlada.";
+  }
+
+  else if (tendencia === "baixa" && vol !== "alta") {
+    estrutura = "Call Credit Spread";
+    strikes = `Venda CALL entre ${Math.round(preco*1.05)} e ${Math.round(preco*1.07)}`;
+    prob = "65% a 75%";
+    comentario = "Cenário favorável para estruturas de crédito na queda.";
+  }
+
+  else if (tendencia === "lateral" && vol === "alta") {
+    estrutura = "Iron Condor (educacional)";
+    strikes = "Venda fora do preço atual, ambos os lados";
+    prob = "60% a 70%";
+    comentario = "Atenção: volatilidade alta exige gerenciamento ativo.";
+  }
+
+  else {
+    estrutura = "Nenhuma estrutura recomendada";
+    strikes = "-";
+    prob = "Baixa";
+    comentario = "Cenário desfavorável. Melhor estudar ou aguardar.";
+  }
+
+  document.getElementById("saida").innerHTML = `
+  <h3>📌 Estrutura Sugerida</h3>
+  <b>${estrutura}</b>
+
+  <h3>🎯 Região de Strikes</h3>
+  ${strikes}
+
+  <h3>📈 Probabilidade Estimada</h3>
+  ${prob}
+
+  <h3>🧠 Leitura Educacional</h3>
+  ${comentario}
+  `;
+}
+</script>
+
+</body>
+</html>
