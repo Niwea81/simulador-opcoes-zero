@@ -11,67 +11,50 @@ body {
   background: linear-gradient(135deg, #020617, #020024);
   color: #e5e7eb;
 }
-
 .container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 40px auto;
   background: #020617;
   padding: 30px;
   border-radius: 14px;
-  box-shadow: 0 0 25px rgba(0,0,0,.6);
 }
-
 h1, h2 {
   text-align: center;
   color: #facc15;
 }
-
 label {
   display: block;
-  margin-top: 15px;
+  margin-top: 12px;
   font-weight: bold;
 }
-
-select, input {
+input, select {
   width: 100%;
   padding: 10px;
   margin-top: 6px;
   border-radius: 6px;
   border: none;
-  font-size: 16px;
 }
-
 button {
   margin-top: 25px;
   width: 100%;
   padding: 14px;
   font-size: 18px;
   background: #2563eb;
-  border: none;
   border-radius: 8px;
+  border: none;
   color: white;
-  cursor: pointer;
 }
-
 .section {
   margin-top: 35px;
   padding: 20px;
   background: #020024;
   border-radius: 12px;
 }
-
 canvas {
   width: 100%;
-  height: 280px;
+  height: 260px;
   background: #020617;
   border-radius: 10px;
-}
-
-.alerta {
-  margin-top: 20px;
-  color: #f87171;
-  font-weight: bold;
-  text-align: center;
 }
 </style>
 </head>
@@ -79,136 +62,130 @@ canvas {
 <body>
 
 <div class="container">
-<h1>📊 Simulador Educacional de Opções</h1>
+<h1>📊 Plataforma Educacional de Opções</h1>
 
 <label>Ativo</label>
 <select id="ativo">
-  <option value="SPY">SPY</option>
-  <option value="SPX">SPX</option>
-  <option value="QQQ">QQQ</option>
-  <option value="AAPL">AAPL</option>
+  <option>SPY</option>
+  <option>SPX</option>
+  <option>QQQ</option>
 </select>
 
-<label>Tendência do Mercado</label>
-<select id="tendencia">
-  <option value="alta">Alta</option>
-  <option value="lateral">Lateral</option>
-  <option value="baixa">Baixa</option>
+<label>Preço Atual</label>
+<input id="S" type="number" value="100">
+
+<label>Strike</label>
+<input id="K" type="number" value="105">
+
+<label>Dias até o Vencimento</label>
+<input id="T" type="number" value="7">
+
+<label>Volatilidade (%)</label>
+<input id="vol" type="number" value="20">
+
+<label>Tipo de Opção</label>
+<select id="tipo">
+  <option value="call">Call</option>
+  <option value="put">Put</option>
 </select>
 
-<label>Volatilidade</label>
-<select id="vol">
-  <option value="baixa">Baixa</option>
-  <option value="media">Média</option>
-  <option value="alta">Alta</option>
-</select>
+<button onclick="calcular()">Calcular & Analisar Trade</button>
 
-<label>Dias até o vencimento (DTE)</label>
-<input type="number" id="dte" value="7">
-
-<label>Preço atual do ativo</label>
-<input type="number" id="preco" value="100">
-
-<button onclick="analisar()">Analisar Cenário</button>
-
-<!-- RESULTADO EDUCACIONAL -->
 <div id="resultado" class="section"></div>
 
-<!-- PAYOFF -->
 <div class="section">
-  <h2>📈 Payoff Educacional</h2>
+  <h2>📈 Payoff</h2>
   <canvas id="payoff"></canvas>
 </div>
 
-<!-- TRADINGVIEW (ISOLADO) -->
 <div class="section">
   <h2>📉 Gráfico do Ativo</h2>
-  <iframe id="tv"
-    width="100%"
-    height="400"
-    frameborder="0"
-    allowfullscreen>
-  </iframe>
+  <iframe id="tv" width="100%" height="400" frameborder="0"></iframe>
 </div>
 
-<p class="alerta">
-⚠️ Ferramenta educacional. Não é recomendação de investimento.
-</p>
 </div>
 
 <script>
-function analisar() {
+function N(x) {
+  return 0.5 * (1 + Math.erf(x / Math.sqrt(2)));
+}
 
-  const ativo = document.getElementById("ativo").value;
-  const tendencia = document.getElementById("tendencia").value;
-  const vol = document.getElementById("vol").value;
-  const preco = Number(document.getElementById("preco").value);
+function calcular() {
 
-  let estrutura = "";
-  let strikes = "";
-  let prob = "";
-  let aula = "";
-  let direcao = 0;
+  const S = +document.getElementById("S").value;
+  const K = +document.getElementById("K").value;
+  const T = document.getElementById("T").value / 365;
+  const sigma = document.getElementById("vol").value / 100;
+  const tipo = document.getElementById("tipo").value;
+  const r = 0.05;
 
-  if (tendencia === "alta" && vol !== "alta") {
-    estrutura = "Put Credit Spread";
-    strikes = `Venda PUT entre ${Math.round(preco*0.95)} e ${Math.round(preco*0.93)}`;
-    prob = "65% a 75%";
-    aula = "Tendência de alta + volatilidade controlada favorecem estruturas de crédito na PUT.";
-    direcao = -1;
+  const d1 = (Math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*Math.sqrt(T));
+  const d2 = d1 - sigma*Math.sqrt(T);
+
+  let preco, delta;
+
+  if (tipo === "call") {
+    preco = S*N(d1) - K*Math.exp(-r*T)*N(d2);
+    delta = N(d1);
+  } else {
+    preco = K*Math.exp(-r*T)*N(-d2) - S*N(-d1);
+    delta = N(d1)-1;
   }
-  else if (tendencia === "baixa" && vol !== "alta") {
-    estrutura = "Call Credit Spread";
-    strikes = `Venda CALL entre ${Math.round(preco*1.05)} e ${Math.round(preco*1.07)}`;
-    prob = "65% a 75%";
-    aula = "Tendência de baixa favorece venda de CALL fora do preço.";
-    direcao = 1;
-  }
-  else {
-    estrutura = "Nenhuma estrutura recomendada";
-    strikes = "-";
-    prob = "Baixa";
-    aula = "Cenário instável. A melhor decisão educacional é não operar.";
-    direcao = 0;
+
+  let perfil = "";
+  let zona = "";
+
+  const absDelta = Math.abs(delta);
+
+  if (absDelta < 0.25) {
+    perfil = "🟢 Conservador";
+    zona = "OTM";
+  } else if (absDelta < 0.45) {
+    perfil = "🟡 Moderado";
+    zona = "ATM";
+  } else {
+    perfil = "🔴 Agressivo";
+    zona = "ITM";
   }
 
   document.getElementById("resultado").innerHTML = `
-    <h2>🧠 Aula Guiada</h2>
-    <p><b>Ativo:</b> ${ativo}</p>
-    <p><b>Estrutura:</b> ${estrutura}</p>
-    <p><b>Região de Strikes:</b> ${strikes}</p>
-    <p><b>Probabilidade estimada:</b> ${prob}</p>
-    <p>${aula}</p>
+    <h2>🧠 Análise Educacional</h2>
+    <p><b>Preço Teórico (Black-Scholes):</b> $${preco.toFixed(2)}</p>
+    <p><b>Delta:</b> ${delta.toFixed(2)}</p>
+    <p><b>Moneyness:</b> ${zona}</p>
+    <p><b>Perfil de Trade:</b> ${perfil}</p>
+    <p>⚠️ Trades agressivos têm maior risco direcional e emocional.</p>
   `;
 
-  desenharPayoff(preco, direcao);
+  desenharPayoff(S, K, tipo);
 
   document.getElementById("tv").src =
-    `https://s.tradingview.com/widgetembed/?symbol=${ativo}&interval=60&theme=dark`;
+   `https://s.tradingview.com/widgetembed/?symbol=${document.getElementById("ativo").value}&interval=60&theme=dark`;
 }
 
-function desenharPayoff(preco, direcao) {
+function desenharPayoff(S, K, tipo) {
   const c = document.getElementById("payoff");
   const ctx = c.getContext("2d");
   c.width = c.offsetWidth;
-  c.height = 280;
+  c.height = 260;
   ctx.clearRect(0,0,c.width,c.height);
 
+  ctx.beginPath();
   ctx.strokeStyle = "#22c55e";
   ctx.lineWidth = 3;
-  ctx.beginPath();
 
   for (let x = 0; x <= c.width; x++) {
-    const p = preco - 20 + (x / c.width) * 40;
-    let y = c.height/2;
+    const p = S - 30 + (x/c.width)*60;
+    let payoff = 0;
 
-    if (direcao === -1) y -= (p - preco) * 3;
-    if (direcao === 1) y += (p - preco) * 3;
+    if (tipo === "call") payoff = Math.max(p - K, 0);
+    else payoff = Math.max(K - p, 0);
+
+    const y = c.height - payoff*4 - 40;
 
     if (x === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
-
   ctx.stroke();
 }
 </script>
