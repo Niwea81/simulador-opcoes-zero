@@ -9,10 +9,9 @@ body {
   font-family: Arial, sans-serif;
   background: radial-gradient(circle, #020617, #000);
   color: #e5e7eb;
-  margin: 0;
 }
 .container {
-  max-width: 980px;
+  max-width: 1000px;
   margin: 40px auto;
   background: #020617;
   padding: 30px;
@@ -34,20 +33,13 @@ input, select {
   border-radius: 6px;
   border: none;
 }
-.note {
+.note, .alert {
   margin-top: 14px;
-  padding: 10px;
-  background: #020024;
-  border-left: 4px solid #facc15;
+  padding: 12px;
   border-radius: 6px;
 }
-.alert {
-  margin-top: 12px;
-  padding: 10px;
-  background: #1e293b;
-  border-left: 4px solid #ef4444;
-  border-radius: 6px;
-}
+.note { background:#020024; border-left:4px solid #facc15; }
+.alert { background:#1e293b; border-left:4px solid #ef4444; }
 button {
   margin-top: 25px;
   width: 100%;
@@ -65,24 +57,19 @@ button {
   padding: 20px;
   border-radius: 14px;
 }
-canvas {
-  width: 100%;
-  height: 260px;
-}
+canvas { width:100%; height:260px; }
 .tag {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding:6px 12px;
+  border-radius:8px;
+  font-weight:bold;
 }
-.green { background:#22c55e; color:#000; }
-.yellow { background:#facc15; color:#000; }
-.red { background:#ef4444; color:#fff; }
+.green{background:#22c55e;color:#000}
+.yellow{background:#facc15;color:#000}
+.red{background:#ef4444;color:#fff}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <h1>📊 Simulador Educacional de Opções</h1>
@@ -90,19 +77,11 @@ canvas {
 <label>Ativo</label>
 <select id="ativo">
   <optgroup label="Índices / ETFs">
-    <option>SPY</option>
-    <option>SPX</option>
-    <option>XSP</option>
-    <option>QQQ</option>
+    <option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
   </optgroup>
   <optgroup label="7 Magníficas">
-    <option>AAPL</option>
-    <option>MSFT</option>
-    <option>AMZN</option>
-    <option>NVDA</option>
-    <option>GOOGL</option>
-    <option>META</option>
-    <option>TSLA</option>
+    <option>AAPL</option><option>MSFT</option><option>AMZN</option>
+    <option>NVDA</option><option>GOOGL</option><option>META</option><option>TSLA</option>
   </optgroup>
 </select>
 
@@ -118,26 +97,29 @@ canvas {
 <label>Volatilidade (%)</label>
 <input id="vol" type="number" value="20">
 
-<label>Tipo de Opção</label>
-<select id="tipo">
-  <option value="call">Call Comprada</option>
-  <option value="put">Put Comprada</option>
+<label>Estrutura</label>
+<select id="estrutura">
+  <option value="call_buy">Call Comprada</option>
+  <option value="put_buy">Put Comprada</option>
+  <option value="call_sell">Call Vendida (Naked)</option>
+  <option value="put_sell">Put Vendida (Naked)</option>
+  <option value="bull_call">Bull Call Spread</option>
+  <option value="bear_put">Bear Put Spread</option>
 </select>
 
 <div class="alert">
-⚠️ Opções compradas exigem o pagamento integral do prêmio.  
-Venda de opções exige margem ou o ativo conforme regras da corretora.
+⚠️ Venda de opções envolve risco elevado e exigência de margem.  
+Não recomendada para iniciantes.
 </div>
 
 <div class="note">
-📌 <b>Compare com o gráfico abaixo antes de analisar.</b>  
-Este simulador não substitui leitura de contexto de mercado.
+📌 Compare com o gráfico abaixo antes de analisar.  
+Este simulador é educacional.
 </div>
 
-<button onclick="analisar()">📈 Analisar Cenário</button>
+<button onclick="analisar()">📈 Analisar Operação</button>
 
-<div id="bs" class="section"></div>
-<div id="sugestao" class="section"></div>
+<div id="resultado" class="section"></div>
 
 <div class="section">
 <h2>Payoff</h2>
@@ -146,85 +128,74 @@ Este simulador não substitui leitura de contexto de mercado.
 
 <div class="section">
 <h2>Gráfico do Ativo</h2>
-<iframe id="tv" width="100%" height="400" frameborder="0"></iframe>
+<iframe id="tv" width="100%" height="400"></iframe>
 </div>
 
 </div>
 
 <script>
-// === Black-Scholes ===
+// ==== Funções matemáticas ====
 function erf(x){
-  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
-  const sign=x<0?-1:1; x=Math.abs(x);
-  const t=1/(1+p*x);
-  const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
-  return sign*y;
+ const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+ const sign=x<0?-1:1; x=Math.abs(x);
+ const t=1/(1+p*x);
+ const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+ return sign*y;
 }
 function N(x){ return 0.5*(1+erf(x/Math.sqrt(2))); }
 
+// ==== Análise ====
 function analisar(){
-  const S=+document.getElementById("S").value;
-  const K=+document.getElementById("K").value;
-  const T=+document.getElementById("T").value/365;
-  const σ=+document.getElementById("vol").value/100;
-  const tipo=document.getElementById("tipo").value;
-  const r=0.05;
+ const S=+S.value,K=+K.value,T=+T.value/365,σ=+vol.value/100,r=0.05;
+ const estrutura=estrutura_el.value;
 
-  const d1=(Math.log(S/K)+(r+0.5*σ*σ)*T)/(σ*Math.sqrt(T));
-  const d2=d1-σ*Math.sqrt(T);
+ const d1=(Math.log(S/K)+(r+0.5*σ*σ)*T)/(σ*Math.sqrt(T));
+ const d2=d1-σ*Math.sqrt(T);
 
-  let preco,delta;
-  if(tipo==="call"){ preco=S*N(d1)-K*Math.exp(-r*T)*N(d2); delta=N(d1); }
-  else{ preco=K*Math.exp(-r*T)*N(-d2)-S*N(-d1); delta=N(d1)-1; }
+ let preco=S*N(d1)-K*Math.exp(-r*T)*N(d2);
+ let delta=N(d1);
+ let pop=(1-delta)*100;
 
-  let volClass="Baixa";
-  if(σ*100>30) volClass="Alta";
-  else if(σ*100>=18) volClass="Média";
+ let risco="Limitado",perfil="Iniciante";
 
-  let perfil="Iniciante",tag="green",exemplo="";
-  if(Math.abs(delta)>0.45){
-    perfil="Agressivo"; tag="red";
-    exemplo="Ex: Call ITM em rompimento forte com momentum.";
-  } else if(Math.abs(delta)>0.25){
-    perfil="Moderado"; tag="yellow";
-    exemplo="Ex: Opção ATM em mercado lateral com direção definida.";
-  } else {
-    exemplo="Ex: Call OTM para treino de leitura e risco controlado.";
-  }
+ if(estrutura.includes("sell")){
+   risco="Elevado"; perfil="Avançado"; pop=(delta*100);
+ }
 
-  document.getElementById("bs").innerHTML=`
-  <h2>📐 Black-Scholes</h2>
-  <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
-  <p><b>Delta:</b> ${delta.toFixed(2)}</p>
-  <p><b>Volatilidade:</b> ${volClass} (${(σ*100).toFixed(1)}%)</p>
-  `;
+ if(estrutura.includes("spread")){
+   risco="Limitado"; perfil="Intermediário"; pop=60;
+ }
 
-  document.getElementById("sugestao").innerHTML=`
-  <h2>🧠 Sugestão Educacional</h2>
-  <p class="tag ${tag}">${perfil}</p>
-  <p>${exemplo}</p>
-  `;
+ resultado.innerHTML=`
+ <h2>📐 Black-Scholes & Risco</h2>
+ <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
+ <p><b>Delta:</b> ${delta.toFixed(2)}</p>
+ <p><b>POP (aprox.):</b> ${pop.toFixed(0)}%</p>
+ <p><b>Risco:</b> ${risco}</p>
+ <p><b>Perfil indicado:</b> ${perfil}</p>
+ `;
 
-  document.getElementById("tv").src=
-  `https://s.tradingview.com/widgetembed/?symbol=${document.getElementById("ativo").value}&interval=60&theme=dark`;
-
-  desenharPayoff(S,K,tipo);
+ tv.src=`https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=60&theme=dark`;
+ desenharPayoff(S,K);
 }
 
-function desenharPayoff(S,K,tipo){
-  const c=document.getElementById("payoff"),ctx=c.getContext("2d");
-  c.width=c.offsetWidth; c.height=260;
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx.beginPath(); ctx.strokeStyle="#22c55e"; ctx.lineWidth=3;
-  for(let x=0;x<=c.width;x++){
-    const p=S-30+(x/c.width)*60;
-    const pf=tipo==="call"?Math.max(p-K,0):Math.max(K-p,0);
-    const y=c.height-pf*4-40;
-    if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }
-  ctx.stroke();
+function desenharPayoff(S,K){
+ const c=payoff,ctx=c.getContext("2d");
+ c.width=c.offsetWidth; c.height=260;
+ ctx.clearRect(0,0,c.width,c.height);
+ ctx.beginPath(); ctx.strokeStyle="#22c55e"; ctx.lineWidth=3;
+ for(let x=0;x<=c.width;x++){
+   const p=S-30+(x/c.width)*60;
+   const pf=Math.max(p-K,0);
+   const y=c.height-pf*4-40;
+   if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+ }
+ ctx.stroke();
 }
+
+const estrutura_el=document.getElementById("estrutura");
 </script>
 
 </body>
 </html>
+
