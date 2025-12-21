@@ -8,22 +8,29 @@
 body{
   background:#020617;
   color:#e5e7eb;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
 }
 .container{
-  max-width:1100px;
-  margin:40px auto;
+  max-width:1200px;
+  margin:30px auto;
   background:#020024;
   padding:30px;
-  border-radius:18px;
+  border-radius:20px;
 }
-h1,h2{color:#facc15;text-align:center}
-label{display:block;margin-top:14px;font-weight:bold}
+h1,h2,h3{
+  color:#facc15;
+  text-align:center;
+}
+label{
+  display:block;
+  margin-top:14px;
+  font-weight:bold;
+}
 input,select{
   width:100%;
   padding:10px;
   margin-top:6px;
-  border-radius:6px;
+  border-radius:8px;
   border:none;
 }
 button{
@@ -32,35 +39,42 @@ button{
   padding:16px;
   font-size:18px;
   background:#2563eb;
-  color:#fff;
+  color:white;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   cursor:pointer;
 }
 .section{
   margin-top:30px;
   background:#020617;
   padding:20px;
-  border-radius:14px;
+  border-radius:16px;
 }
 .note{
   background:#020024;
   border-left:4px solid #facc15;
-  padding:12px;
-  margin-top:12px;
+  padding:14px;
+  margin-top:14px;
+}
+.guided{
+  background:#020024;
+  border-left:4px solid #22c55e;
+  padding:18px;
+  margin-top:20px;
+  line-height:1.6;
 }
 canvas{
   width:100%;
   height:300px;
   background:#020024;
-  border-radius:10px;
+  border-radius:12px;
 }
-.guided{
-  background:#020024;
-  border-left:4px solid #22c55e;
-  padding:16px;
-  margin-top:20px;
-  line-height:1.6;
+.legend{
+  color:#cbd5f5;
+  margin-top:10px;
+}
+iframe{
+  border-radius:14px;
 }
 </style>
 </head>
@@ -72,8 +86,31 @@ canvas{
 
 <label>Ativo</label>
 <select id="ativo">
-  <option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
+  <option>SPY</option>
+  <option>SPX</option>
+  <option>XSP</option>
+  <option>QQQ</option>
+  <option>AAPL</option>
+  <option>MSFT</option>
+  <option>AMZN</option>
+  <option>GOOGL</option>
+  <option>META</option>
+  <option>NVDA</option>
+  <option>TSLA</option>
 </select>
+
+<div class="section">
+<h2>📈 Gráfico de Contexto</h2>
+<iframe
+  src="https://s.tradingview.com/widgetembed/?symbol=NASDAQ:SPY&interval=15&theme=dark"
+  width="100%"
+  height="420"
+  frameborder="0"
+></iframe>
+<p style="color:#94a3b8;margin-top:10px">
+Compare este gráfico com o cenário antes de qualquer entrada.
+</p>
+</div>
 
 <label>Preço do Ativo</label>
 <input id="S" type="number" value="100">
@@ -85,30 +122,35 @@ canvas{
 <input id="dte" type="number" value="7">
 
 <label>Estrutura</label>
-<select id="estrutura" onchange="ajustarFormulario()">
+<select id="estrutura" onchange="ajustar()">
   <option value="call">Call Comprada</option>
   <option value="put">Put Comprada</option>
   <option value="bull">Bull Call Spread</option>
   <option value="bear">Bear Put Spread</option>
 </select>
 
-<div id="singleStrike">
-  <label>Strike</label>
-  <input id="K" type="number" value="105">
+<div id="single">
+<label>Strike</label>
+<input id="K" type="number" value="105">
 </div>
 
-<div id="spreadStrikes" style="display:none">
-  <label>Strike Comprado</label>
-  <input id="Kbuy" type="number" value="100">
-  <label>Strike Vendido</label>
-  <input id="Ksell" type="number" value="110">
+<div id="spread" style="display:none">
+<label>Strike Comprado</label>
+<input id="Kbuy" type="number" value="100">
+<label>Strike Vendido</label>
+<input id="Ksell" type="number" value="110">
 </div>
 
-<button onclick="analisar()">📈 Analisar</button>
+<button onclick="analisar()">📊 Analisar</button>
 
 <div class="section">
-  <h2>📉 Payoff no Vencimento</h2>
-  <canvas id="payoff"></canvas>
+<h2>📉 Payoff no Vencimento</h2>
+<canvas id="payoff"></canvas>
+<div class="legend">
+🟢 Acima do breakeven: lucro<br>
+🟡 Breakeven: nem ganha nem perde<br>
+🔴 Abaixo do breakeven: risco — saia rápido se o cenário mudar
+</div>
 </div>
 
 <div id="resultado" class="section"></div>
@@ -118,16 +160,16 @@ canvas{
 </div>
 
 <script>
-function ajustarFormulario(){
+function ajustar(){
   const e=estrutura.value;
-  singleStrike.style.display=(e==="call"||e==="put")?"block":"none";
-  spreadStrikes.style.display=(e==="bull"||e==="bear")?"block":"none";
+  single.style.display=(e==="call"||e==="put")?"block":"none";
+  spread.style.display=(e==="bull"||e==="bear")?"block":"none";
 }
 
 function analisar(){
-  const S=+document.getElementById("S").value;
-  const iv=+document.getElementById("iv").value;
-  const dte=+document.getElementById("dte").value;
+  const S=+S.value;
+  const ivv=+iv.value;
+  const dteV=+dte.value;
   const est=estrutura.value;
 
   let strikes=[];
@@ -138,7 +180,7 @@ function analisar(){
   }
 
   desenharPayoff(S,est,strikes);
-  calcularResultados(S,iv,dte,est,strikes);
+  mostrarResultados(S,ivv,dteV,est,strikes);
 }
 
 function desenharPayoff(S,est,strikes){
@@ -146,19 +188,20 @@ function desenharPayoff(S,est,strikes){
   c.width=c.offsetWidth;c.height=300;
   ctx.clearRect(0,0,c.width,c.height);
 
-  const min=S*0.7,max=S*1.3;
-  const zeroY=c.height/2;
+  const min=S*0.8,max=S*1.2;
+  const zeroY=c.height*0.7;
 
-  // linha zero
   ctx.strokeStyle="#64748b";
   ctx.beginPath();
   ctx.moveTo(0,zeroY);
   ctx.lineTo(c.width,zeroY);
   ctx.stroke();
 
-  ctx.beginPath();
   ctx.strokeStyle="#22c55e";
   ctx.lineWidth=3;
+  ctx.beginPath();
+
+  let breakeven=strikes[0];
 
   for(let x=0;x<=c.width;x++){
     const price=min+(x/c.width)*(max-min);
@@ -169,46 +212,43 @@ function desenharPayoff(S,est,strikes){
     if(est==="bull") p=Math.max(price-strikes[0],0)-Math.max(price-strikes[1],0);
     if(est==="bear") p=Math.max(strikes[1]-price,0)-Math.max(strikes[0]-price,0);
 
-    const y=zeroY-p*4;
+    const y=zeroY-p*2;
     if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
   }
   ctx.stroke();
+
+  const bx=((breakeven-min)/(max-min))*c.width;
+  ctx.fillStyle="#facc15";
+  ctx.beginPath();
+  ctx.arc(bx,zeroY,6,0,2*Math.PI);
+  ctx.fill();
 }
 
-function calcularResultados(S,iv,dte,est,strikes){
-  let pop;
-  if(est==="call") pop=30;
-  if(est==="put") pop=30;
-  if(est==="bull") pop=55;
-  if(est==="bear") pop=55;
-
-  pop += (iv<20)?5:0;
-  pop += (dte<10)?-5:0;
+function mostrarResultados(S,ivv,dteV,est,strikes){
+  let pop=(est==="call"||est==="put")?30:55;
+  if(ivv<20) pop+=5;
+  if(dteV<7) pop-=5;
 
   resultado.innerHTML=`
-  <h2>📐 Métricas</h2>
-  <p><b>Probabilidade de Ganho (POP):</b> ~ ${pop}%</p>
-  <p><b>Volatilidade:</b> ${iv}%</p>
-  <p><b>DTE:</b> ${dte} dias</p>
+  <h2>📐 Estrutura da Operação</h2>
+  <p><b>Volatilidade (IV):</b> ${ivv}%</p>
+  <p><b>DTE:</b> ${dteV} dias</p>
+  <p><b>POP estimada:</b> ~${pop}%</p>
+  <p><b>Risco:</b> limitado e conhecido</p>
   `;
 
   aula.innerHTML=`
   <h3>🎓 Aula Guiada</h3>
-  <p><b>${est.toUpperCase()}</b> é uma estrutura indicada quando você tem
-  <u>direção clara</u> e aceita pagar por convexidade.</p>
-
-  <p><b>Gerenciamento:</b><br>
-  • Risco máximo conhecido<br>
-  • Nunca arrisque mais que 1–2% da conta<br>
-  • Spreads aumentam POP e reduzem custo emocional</p>
-
-  <p><b>Leitura Profissional:</b><br>
-  • IV alta favorece spreads<br>
-  • DTE curto = menos tempo para errar<br>
-  • POP maior ≠ lucro maior</p>
+  <p>Esta estrutura é adequada quando você tem leitura direcional clara.</p>
+  <p><b>Iniciante:</b> prefira spreads — menor custo emocional.</p>
+  <p><b>Moderado:</b> direcional com IV favorável.</p>
+  <p><b>Agressivo:</b> calls/puts compradas exigem timing.</p>
+  <p><b>Gestão:</b> risco máximo ≤ 1–2% da conta.</p>
   `;
 }
 </script>
+
 </body>
 </html>
+
 
