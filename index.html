@@ -169,89 +169,67 @@ function analisar(){
  }
 }
 
-function desenharPayoff(S, K, estrutura) {
-  const canvas = document.getElementById("payoff");
-  const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("payoff");
+const ctx = canvas.getContext("2d");
 
-  canvas.width = canvas.offsetWidth;
-  canvas.height = 260;
+canvas.width = canvas.offsetWidth;
+canvas.height = 260;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Parâmetros
-  const minPrice = S * 0.7;
-  const maxPrice = S * 1.3;
-  const range = maxPrice - minPrice;
-  const scaleX = canvas.width / range;
-  const scaleY = 4;
+// Escala simples
+const minPrice = S * 0.8;
+const maxPrice = S * 1.2;
+const range = maxPrice - minPrice;
+const scaleX = canvas.width / range;
+const scaleY = 4;
 
-  // Breakeven (call comprada como base educacional)
-  const breakeven = K;
+// Breakeven educacional (call comprada)
+const breakeven = K;
 
-  // Linha payoff
+// Linha do payoff
+ctx.beginPath();
+ctx.strokeStyle = "#22c55e";
+ctx.lineWidth = 3;
+
+for (let x = 0; x <= canvas.width; x++) {
+  const price = minPrice + (x / canvas.width) * range;
+  const payoff = Math.max(price - K, 0);
+  const y = canvas.height - payoff * scaleY - 40;
+
+  if (x === 0) ctx.moveTo(x, y);
+  else ctx.lineTo(x, y);
+}
+ctx.stroke();
+
+// Função para desenhar bolinhas
+function drawDot(price, color) {
+  const payoff = Math.max(price - K, 0);
+  const x = (price - minPrice) * scaleX;
+  const y = canvas.height - payoff * scaleY - 40;
+
   ctx.beginPath();
-  ctx.strokeStyle = "#22c55e";
-  ctx.lineWidth = 3;
-
-  for (let x = 0; x <= canvas.width; x++) {
-    const price = minPrice + (x / canvas.width) * range;
-    let payoff = Math.max(price - K, 0);
-
-    const y = canvas.height - payoff * scaleY - 40;
-    if (x === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // Função para desenhar bolinhas
-  function dot(price, color) {
-    const payoff = Math.max(price - K, 0);
-    const x = (price - minPrice) * scaleX;
-    const y = canvas.height - payoff * scaleY - 40;
-
-    ctx.beginPath();
-    ctx.arc(x, y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-
-  // 🔴 Zona de dor
-  dot(K - 10, "#ef4444");
-
-  // 🟡 Breakeven
-  dot(breakeven, "#facc15");
-
-  // 🟢 Zona confortável
-  dot(K + 15, "#22c55e");
-
-  // Mensagem educacional (mantida)
-  document.getElementById("payoffMsg").innerHTML = `
-    <p>🔴 <b>Abaixo do breakeven:</b> começa a dor</p>
-    <p>🟡 <b>No breakeven:</b> zona neutra</p>
-    <p>🟢 <b>Acima do breakeven:</b> você dorme melhor</p>
-  `;
+  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
- const c=document.getElementById("payoff");
- const ctx=c.getContext("2d");
- c.width=c.offsetWidth; c.height=260;
- ctx.clearRect(0,0,c.width,c.height);
- ctx.beginPath(); ctx.strokeStyle="#22c55e"; ctx.lineWidth=3;
+// 🔴 Zona de dor
+drawDot(K - 10, "#ef4444");
 
- for(let x=0;x<=c.width;x++){
-   const p=S-30+(x/c.width)*60;
-   const pf=Math.max(p-K,0);
-   const y=c.height-pf*4-40;
-   if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
- }
- ctx.stroke();
+// 🟡 Breakeven
+drawDot(breakeven, "#facc15");
 
- document.getElementById("payoffMsg").innerHTML=`
- <p>🔴 Abaixo do breakeven: começa a dor</p>
- <p>🟡 No breakeven: zona neutra</p>
- <p>🟢 Acima do breakeven: você dorme melhor</p>
- `;
-}
+// 🟢 Zona confortável
+drawDot(K + 15, "#22c55e");
+
+// Mensagem educativa (mantida simples)
+document.getElementById("payoffMsg").innerHTML = `
+  <p>🔴 Abaixo do breakeven: começa a dor</p>
+  <p>🟡 No breakeven: zona neutra</p>
+  <p>🟢 Acima do breakeven: você fica mais tranquilo</p>
+`;
+
 </script>
 
 </body>
