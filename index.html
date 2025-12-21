@@ -12,11 +12,11 @@ body {
   margin: 0;
 }
 .container {
-  max-width: 950px;
+  max-width: 980px;
   margin: 40px auto;
   background: #020617;
   padding: 30px;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 h1, h2 {
   text-align: center;
@@ -33,6 +33,20 @@ input, select {
   margin-top: 6px;
   border-radius: 6px;
   border: none;
+}
+.note {
+  margin-top: 14px;
+  padding: 10px;
+  background: #020024;
+  border-left: 4px solid #facc15;
+  border-radius: 6px;
+}
+.alert {
+  margin-top: 12px;
+  padding: 10px;
+  background: #1e293b;
+  border-left: 4px solid #ef4444;
+  border-radius: 6px;
 }
 button {
   margin-top: 25px;
@@ -75,9 +89,21 @@ canvas {
 
 <label>Ativo</label>
 <select id="ativo">
-  <option>SPY</option>
-  <option>SPX</option>
-  <option>QQQ</option>
+  <optgroup label="Índices / ETFs">
+    <option>SPY</option>
+    <option>SPX</option>
+    <option>XSP</option>
+    <option>QQQ</option>
+  </optgroup>
+  <optgroup label="7 Magníficas">
+    <option>AAPL</option>
+    <option>MSFT</option>
+    <option>AMZN</option>
+    <option>NVDA</option>
+    <option>GOOGL</option>
+    <option>META</option>
+    <option>TSLA</option>
+  </optgroup>
 </select>
 
 <label>Preço Atual</label>
@@ -92,11 +118,21 @@ canvas {
 <label>Volatilidade (%)</label>
 <input id="vol" type="number" value="20">
 
-<label>Tipo</label>
+<label>Tipo de Opção</label>
 <select id="tipo">
-  <option value="call">Call</option>
-  <option value="put">Put</option>
+  <option value="call">Call Comprada</option>
+  <option value="put">Put Comprada</option>
 </select>
+
+<div class="alert">
+⚠️ Opções compradas exigem o pagamento integral do prêmio.  
+Venda de opções exige margem ou o ativo conforme regras da corretora.
+</div>
+
+<div class="note">
+📌 <b>Compare com o gráfico abaixo antes de analisar.</b>  
+Este simulador não substitui leitura de contexto de mercado.
+</div>
 
 <button onclick="analisar()">📈 Analisar Cenário</button>
 
@@ -116,8 +152,8 @@ canvas {
 </div>
 
 <script>
-// ==== Black-Scholes ==== //
-function erf(x) {
+// === Black-Scholes ===
+function erf(x){
   const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
   const sign=x<0?-1:1; x=Math.abs(x);
   const t=1/(1+p*x);
@@ -127,8 +163,12 @@ function erf(x) {
 function N(x){ return 0.5*(1+erf(x/Math.sqrt(2))); }
 
 function analisar(){
-  const S=+S_el.value,K=+K_el.value,T=+T_el.value/365,σ=+vol.value/100;
-  const tipo=tipo_el.value,r=0.05;
+  const S=+document.getElementById("S").value;
+  const K=+document.getElementById("K").value;
+  const T=+document.getElementById("T").value/365;
+  const σ=+document.getElementById("vol").value/100;
+  const tipo=document.getElementById("tipo").value;
+  const r=0.05;
 
   const d1=(Math.log(S/K)+(r+0.5*σ*σ)*T)/(σ*Math.sqrt(T));
   const d2=d1-σ*Math.sqrt(T);
@@ -137,37 +177,42 @@ function analisar(){
   if(tipo==="call"){ preco=S*N(d1)-K*Math.exp(-r*T)*N(d2); delta=N(d1); }
   else{ preco=K*Math.exp(-r*T)*N(-d2)-S*N(-d1); delta=N(d1)-1; }
 
-  let moneyness="OTM",perfil="Iniciante",tag="green";
-  if(Math.abs(delta)>0.45){ moneyness="ITM"; perfil="Agressivo"; tag="red"; }
-  else if(Math.abs(delta)>0.25){ moneyness="ATM"; perfil="Moderado"; tag="yellow"; }
+  let volClass="Baixa";
+  if(σ*100>30) volClass="Alta";
+  else if(σ*100>=18) volClass="Média";
 
-  bs.innerHTML=`
+  let perfil="Iniciante",tag="green",exemplo="";
+  if(Math.abs(delta)>0.45){
+    perfil="Agressivo"; tag="red";
+    exemplo="Ex: Call ITM em rompimento forte com momentum.";
+  } else if(Math.abs(delta)>0.25){
+    perfil="Moderado"; tag="yellow";
+    exemplo="Ex: Opção ATM em mercado lateral com direção definida.";
+  } else {
+    exemplo="Ex: Call OTM para treino de leitura e risco controlado.";
+  }
+
+  document.getElementById("bs").innerHTML=`
   <h2>📐 Black-Scholes</h2>
   <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
   <p><b>Delta:</b> ${delta.toFixed(2)}</p>
-  <p><b>Classificação:</b> ${moneyness}</p>
+  <p><b>Volatilidade:</b> ${volClass} (${(σ*100).toFixed(1)}%)</p>
   `;
 
-  sugestao.innerHTML=`
+  document.getElementById("sugestao").innerHTML=`
   <h2>🧠 Sugestão Educacional</h2>
   <p class="tag ${tag}">${perfil}</p>
-  <p>
-  ${perfil==="Iniciante"?
-  "Estrutura simples. Prefira opções OTM com delta entre 0.15 e 0.25. Risco menor, foco em aprendizado.":
-  perfil==="Moderado"?
-  "Pode usar opções ATM com delta entre 0.30 e 0.45. Equilíbrio entre risco e resposta ao preço.":
-  "Estrutura agressiva. Opções ITM, delta acima de 0.50. Movem rápido, exigem disciplina."}
-  </p>
+  <p>${exemplo}</p>
   `;
 
-  tv.src=`https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=60&theme=dark`;
+  document.getElementById("tv").src=
+  `https://s.tradingview.com/widgetembed/?symbol=${document.getElementById("ativo").value}&interval=60&theme=dark`;
+
   desenharPayoff(S,K,tipo);
 }
 
-const S_el=S, K_el=K, T_el=T, tipo_el=tipo;
-
 function desenharPayoff(S,K,tipo){
-  const c=payoff,ctx=c.getContext("2d");
+  const c=document.getElementById("payoff"),ctx=c.getContext("2d");
   c.width=c.offsetWidth; c.height=260;
   ctx.clearRect(0,0,c.width,c.height);
   ctx.beginPath(); ctx.strokeStyle="#22c55e"; ctx.lineWidth=3;
