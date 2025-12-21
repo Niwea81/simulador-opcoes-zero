@@ -6,9 +6,9 @@
 
 <style>
 body{
-  font-family:Arial,sans-serif;
   background:#020617;
   color:#e5e7eb;
+  font-family:Arial;
 }
 .container{
   max-width:1100px;
@@ -20,24 +20,44 @@ body{
 h1,h2{color:#facc15;text-align:center}
 label{display:block;margin-top:14px;font-weight:bold}
 input,select{
-  width:100%;padding:10px;margin-top:6px;border-radius:6px;border:none
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:6px;
+  border:none;
 }
 button{
-  margin-top:25px;width:100%;padding:16px;
-  font-size:18px;background:#2563eb;color:#fff;
-  border:none;border-radius:10px;cursor:pointer
+  margin-top:25px;
+  width:100%;
+  padding:16px;
+  font-size:18px;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
 }
 .section{
-  margin-top:30px;background:#020617;
-  padding:20px;border-radius:14px
+  margin-top:30px;
+  background:#020617;
+  padding:20px;
+  border-radius:14px;
 }
-.alert{background:#1e293b;border-left:4px solid #ef4444;padding:12px;margin-top:12px}
-.note{background:#020024;border-left:4px solid #facc15;padding:12px;margin-top:12px}
+.note{
+  background:#020024;
+  border-left:4px solid #facc15;
+  padding:12px;
+  margin-top:12px;
+}
+canvas{
+  width:100%;
+  height:280px;
+  background:#020024;
+  border-radius:10px;
+}
 .tag{padding:6px 12px;border-radius:8px;font-weight:bold}
 .green{background:#22c55e;color:#000}
 .yellow{background:#facc15;color:#000}
-.red{background:#ef4444;color:#fff}
-canvas{width:100%;height:260px}
 </style>
 </head>
 
@@ -53,11 +73,29 @@ canvas{width:100%;height:260px}
 <option>AMZN</option><option>GOOGL</option><option>META</option><option>TSLA</option>
 </select>
 
-<label>Preço Atual</label>
+<label>Preço Atual do Ativo</label>
 <input id="S" type="number" value="100">
 
-<label>Strike</label>
-<input id="K" type="number" value="105">
+<label>Estrutura</label>
+<select id="estrutura" onchange="ajustarFormulario()">
+<option value="call">Call Comprada</option>
+<option value="put">Put Comprada</option>
+<option value="bull">Bull Call Spread</option>
+<option value="bear">Bear Put Spread</option>
+</select>
+
+<div id="singleStrike">
+  <label>Strike</label>
+  <input id="K" type="number" value="105">
+</div>
+
+<div id="spreadStrikes" style="display:none">
+  <label>Strike Comprado</label>
+  <input id="Kbuy" type="number" value="100">
+
+  <label>Strike Vendido</label>
+  <input id="Ksell" type="number" value="110">
+</div>
 
 <label>Dias até o Vencimento</label>
 <input id="T" type="number" value="7">
@@ -65,23 +103,8 @@ canvas{width:100%;height:260px}
 <label>Volatilidade (%)</label>
 <input id="vol" type="number" value="20">
 
-<label>Estrutura</label>
-<select id="estrutura">
-<option value="call_buy">Call Comprada</option>
-<option value="put_buy">Put Comprada</option>
-<option value="call_sell">Call Vendida (Naked)</option>
-<option value="put_sell">Put Vendida (Naked)</option>
-<option disabled>────────</option>
-<option value="bull_call">Bull Call Spread</option>
-<option value="bear_put">Bear Put Spread</option>
-</select>
-
-<div class="alert">
-⚠️ Vendas de opções exigem margem e podem gerar perdas elevadas.
-</div>
-
 <div class="note">
-📌 Compare sempre com o gráfico antes de tomar decisão.
+📌 Compare sempre com o gráfico antes de decidir.
 </div>
 
 <button onclick="analisar()">📈 Analisar</button>
@@ -89,7 +112,7 @@ canvas{width:100%;height:260px}
 <div id="resultado" class="section"></div>
 
 <div class="section">
-<h2>📉 Payoff</h2>
+<h2>📉 Payoff da Operação</h2>
 <canvas id="payoff"></canvas>
 <div id="payoffMsg"></div>
 </div>
@@ -102,135 +125,83 @@ canvas{width:100%;height:260px}
 </div>
 
 <script>
-// ===== util =====
-function erf(x){
- const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
- const s=x<0?-1:1; x=Math.abs(x);
- const t=1/(1+p*x);
- const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
- return s*y;
+function ajustarFormulario(){
+  const e=document.getElementById("estrutura").value;
+  document.getElementById("singleStrike").style.display =
+    (e==="call"||e==="put")?"block":"none";
+  document.getElementById("spreadStrikes").style.display =
+    (e==="bull"||e==="bear")?"block":"none";
 }
-const N=x=>0.5*(1+erf(x/Math.sqrt(2)));
 
 function analisar(){
- try{
- const S=+document.getElementById("S").value;
- const K=+document.getElementById("K").value;
- const T=+document.getElementById("T").value/365;
- const vol=+document.getElementById("vol").value/100;
- const estrutura=document.getElementById("estrutura").value;
- const ativo=document.getElementById("ativo").value;
+  const S=+S.value;
+  const estrutura=estrutura.value;
 
- const r=0.05;
- const d1=(Math.log(S/K)+(r+0.5*vol*vol)*T)/(vol*Math.sqrt(T));
- const d2=d1-vol*Math.sqrt(T);
+  let strikes=[];
+  if(estrutura==="call"||estrutura==="put"){
+    strikes=[+K.value];
+  }else{
+    strikes=[+Kbuy.value,+Ksell.value];
+  }
 
- let preco=S*N(d1)-K*Math.exp(-r*T)*N(d2);
- let delta=N(d1);
- let pop=(1-Math.abs(delta))*100;
+  desenharPayoff(S,estrutura,strikes);
 
- let moneyness = S>K?"ITM":(S<K?"OTM":"ATM");
+  document.getElementById("tv").src=
+   `https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=60&theme=dark`;
 
- let perfil="Iniciante", risco="Limitado", tag="green", texto="";
-
- if(estrutura==="put_buy"){
-   preco=K*Math.exp(-r*T)*N(-d2)-S*N(-d1);
-   delta=N(d1)-1;
-   pop=Math.abs(delta)*100;
-   texto="Proteção ou direcional de baixa. Perda limitada.";
- }
- if(estrutura.includes("sell")){
-   perfil="Avançado"; risco="Elevado"; tag="red";
-   texto="Venda naked. Saia rápido antes que tudo vire merda.";
- }
- if(estrutura.includes("spread")){
-   perfil="Intermediário"; risco="Limitado"; tag="yellow";
-   texto="Spread vertical com controle de risco.";
-   pop=60;
- }
-
- document.getElementById("resultado").innerHTML=`
- <h2>📐 Análise</h2>
- <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
- <p><b>Delta:</b> ${delta.toFixed(2)}</p>
- <p><b>POP:</b> ${pop.toFixed(0)}%</p>
- <p><b>Moneyness:</b> ${moneyness}</p>
- <p><b>Perfil:</b> <span class="tag ${tag}">${perfil}</span></p>
- <p><b>Risco:</b> ${risco}</p>
- <p>${texto}</p>
- `;
-
- document.getElementById("tv").src=
- `https://s.tradingview.com/widgetembed/?symbol=${ativo}&interval=60&theme=dark`;
-
- desenharPayoff(S,K,estrutura);
- }catch(e){
- alert("Erro na análise. Verifique os campos.");
- }
+  document.getElementById("resultado").innerHTML=`
+  <h2>📐 Estrutura Analisada</h2>
+  <p><b>Estrutura:</b> ${estrutura.toUpperCase()}</p>
+  <p><b>Strikes:</b> ${strikes.join(" / ")}</p>
+  <p><span class="tag green">Educacional</span></p>
+  `;
 }
 
-const canvas = document.getElementById("payoff");
-const ctx = canvas.getContext("2d");
+function desenharPayoff(S,estrutura,strikes){
+  const c=document.getElementById("payoff");
+  const ctx=c.getContext("2d");
+  c.width=c.offsetWidth;
+  c.height=280;
+  ctx.clearRect(0,0,c.width,c.height);
 
-canvas.width = canvas.offsetWidth;
-canvas.height = 260;
-
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-// Escala simples
-const minPrice = S * 0.8;
-const maxPrice = S * 1.2;
-const range = maxPrice - minPrice;
-const scaleX = canvas.width / range;
-const scaleY = 4;
-
-// Breakeven educacional (call comprada)
-const breakeven = K;
-
-// Linha do payoff
-ctx.beginPath();
-ctx.strokeStyle = "#22c55e";
-ctx.lineWidth = 3;
-
-for (let x = 0; x <= canvas.width; x++) {
-  const price = minPrice + (x / canvas.width) * range;
-  const payoff = Math.max(price - K, 0);
-  const y = canvas.height - payoff * scaleY - 40;
-
-  if (x === 0) ctx.moveTo(x, y);
-  else ctx.lineTo(x, y);
-}
-ctx.stroke();
-
-// Função para desenhar bolinhas
-function drawDot(price, color) {
-  const payoff = Math.max(price - K, 0);
-  const x = (price - minPrice) * scaleX;
-  const y = canvas.height - payoff * scaleY - 40;
+  const min=S*0.7,max=S*1.3;
+  const scaleX=c.width/(max-min);
+  const scaleY=4;
 
   ctx.beginPath();
-  ctx.arc(x, y, 7, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-}
+  ctx.strokeStyle="#22c55e";
+  ctx.lineWidth=3;
 
-// 🔴 Zona de dor
-drawDot(K - 10, "#ef4444");
+  for(let x=0;x<=c.width;x++){
+    const price=min+(x/c.width)*(max-min);
+    let payoff=0;
 
-// 🟡 Breakeven
-drawDot(breakeven, "#facc15");
+    if(estrutura==="call"){
+      payoff=Math.max(price-strikes[0],0);
+    }
+    if(estrutura==="put"){
+      payoff=Math.max(strikes[0]-price,0);
+    }
+    if(estrutura==="bull"){
+      payoff=Math.max(price-strikes[0],0)-Math.max(price-strikes[1],0);
+    }
+    if(estrutura==="bear"){
+      payoff=Math.max(strikes[1]-price,0)-Math.max(strikes[0]-price,0);
+    }
 
-// 🟢 Zona confortável
-drawDot(K + 15, "#22c55e");
+    const y=c.height-payoff*scaleY-40;
+    if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
 
-// Mensagem educativa (mantida simples)
-document.getElementById("payoffMsg").innerHTML = `
+  document.getElementById("payoffMsg").innerHTML=`
   <p>🔴 Abaixo do breakeven: começa a dor</p>
-  <p>🟡 No breakeven: zona neutra</p>
-  <p>🟢 Acima do breakeven: você fica mais tranquilo</p>
-`;
-
+  <p>🟡 Região neutra: atenção</p>
+  <p>🟢 Região favorável: você fica mais tranquilo</p>
+  `;
+}
 </script>
 
 </body>
 </html>
+
