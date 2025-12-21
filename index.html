@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Simulador Educacional de Opções</title>
+<title>Simulador de Opções</title>
 
 <style>
 body{
@@ -11,7 +11,7 @@ body{
   font-family:Arial;
 }
 .container{
-  max-width:1100px;
+  max-width:1000px;
   margin:40px auto;
   background:#020024;
   padding:30px;
@@ -51,13 +51,10 @@ button{
 }
 canvas{
   width:100%;
-  height:280px;
+  height:260px;
   background:#020024;
   border-radius:10px;
 }
-.tag{padding:6px 12px;border-radius:8px;font-weight:bold}
-.green{background:#22c55e;color:#000}
-.yellow{background:#facc15;color:#000}
 </style>
 </head>
 
@@ -68,20 +65,20 @@ canvas{
 
 <label>Ativo</label>
 <select id="ativo">
-<option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
-<option>AAPL</option><option>MSFT</option><option>NVDA</option>
-<option>AMZN</option><option>GOOGL</option><option>META</option><option>TSLA</option>
+  <option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
+  <option>AAPL</option><option>MSFT</option><option>NVDA</option>
+  <option>AMZN</option><option>GOOGL</option><option>META</option><option>TSLA</option>
 </select>
 
-<label>Preço Atual do Ativo</label>
+<label>Preço do Ativo</label>
 <input id="S" type="number" value="100">
 
 <label>Estrutura</label>
 <select id="estrutura" onchange="ajustarFormulario()">
-<option value="call">Call Comprada</option>
-<option value="put">Put Comprada</option>
-<option value="bull">Bull Call Spread</option>
-<option value="bear">Bear Put Spread</option>
+  <option value="call">Call Comprada</option>
+  <option value="put">Put Comprada</option>
+  <option value="bull">Bull Call Spread</option>
+  <option value="bear">Bear Put Spread</option>
 </select>
 
 <div id="singleStrike">
@@ -92,39 +89,34 @@ canvas{
 <div id="spreadStrikes" style="display:none">
   <label>Strike Comprado</label>
   <input id="Kbuy" type="number" value="100">
-
   <label>Strike Vendido</label>
   <input id="Ksell" type="number" value="110">
 </div>
-
-<label>Dias até o Vencimento</label>
-<input id="T" type="number" value="7">
-
-<label>Volatilidade (%)</label>
-<input id="vol" type="number" value="20">
 
 <div class="note">
 📌 Compare sempre com o gráfico antes de decidir.
 </div>
 
-<button onclick="analisar()">📈 Analisar</button>
+<button id="btn">📈 Analisar</button>
 
 <div id="resultado" class="section"></div>
 
 <div class="section">
-<h2>📉 Payoff da Operação</h2>
-<canvas id="payoff"></canvas>
-<div id="payoffMsg"></div>
+  <h2>📉 Payoff</h2>
+  <canvas id="payoff"></canvas>
+  <div id="payoffMsg"></div>
 </div>
 
 <div class="section">
-<h2>📊 Gráfico do Ativo</h2>
-<iframe id="tv" width="100%" height="420"></iframe>
+  <h2>📊 Gráfico do Ativo</h2>
+  <iframe id="tv" width="100%" height="420"></iframe>
 </div>
 
 </div>
 
 <script>
+document.getElementById("btn").addEventListener("click", analisar);
+
 function ajustarFormulario(){
   const e=document.getElementById("estrutura").value;
   document.getElementById("singleStrike").style.display =
@@ -134,26 +126,28 @@ function ajustarFormulario(){
 }
 
 function analisar(){
-  const S=+S.value;
-  const estrutura=estrutura.value;
+  const S = Number(document.getElementById("S").value);
+  const estrutura = document.getElementById("estrutura").value;
+  let strikes = [];
 
-  let strikes=[];
   if(estrutura==="call"||estrutura==="put"){
-    strikes=[+K.value];
+    strikes=[Number(document.getElementById("K").value)];
   }else{
-    strikes=[+Kbuy.value,+Ksell.value];
+    strikes=[
+      Number(document.getElementById("Kbuy").value),
+      Number(document.getElementById("Ksell").value)
+    ];
   }
 
   desenharPayoff(S,estrutura,strikes);
 
-  document.getElementById("tv").src=
-   `https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=60&theme=dark`;
+  document.getElementById("tv").src =
+   `https://s.tradingview.com/widgetembed/?symbol=${document.getElementById("ativo").value}&interval=60&theme=dark`;
 
-  document.getElementById("resultado").innerHTML=`
-  <h2>📐 Estrutura Analisada</h2>
-  <p><b>Estrutura:</b> ${estrutura.toUpperCase()}</p>
-  <p><b>Strikes:</b> ${strikes.join(" / ")}</p>
-  <p><span class="tag green">Educacional</span></p>
+  document.getElementById("resultado").innerHTML = `
+    <h2>📐 Estrutura</h2>
+    <p><b>Tipo:</b> ${estrutura}</p>
+    <p><b>Strikes:</b> ${strikes.join(" / ")}</p>
   `;
 }
 
@@ -161,10 +155,10 @@ function desenharPayoff(S,estrutura,strikes){
   const c=document.getElementById("payoff");
   const ctx=c.getContext("2d");
   c.width=c.offsetWidth;
-  c.height=280;
+  c.height=260;
   ctx.clearRect(0,0,c.width,c.height);
 
-  const min=S*0.7,max=S*1.3;
+  const min=S*0.7, max=S*1.3;
   const scaleX=c.width/(max-min);
   const scaleY=4;
 
@@ -194,14 +188,10 @@ function desenharPayoff(S,estrutura,strikes){
   }
   ctx.stroke();
 
-  document.getElementById("payoffMsg").innerHTML=`
-  <p>🔴 Abaixo do breakeven: começa a dor</p>
-  <p>🟡 Região neutra: atenção</p>
-  <p>🟢 Região favorável: você fica mais tranquilo</p>
-  `;
+  document.getElementById("payoffMsg").innerHTML =
+   "<p>🔴 Região desfavorável | 🟡 Neutra | 🟢 Favorável</p>";
 }
 </script>
 
 </body>
 </html>
-
