@@ -5,69 +5,39 @@
 <title>Simulador Educacional de Opções</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle, #020617, #000);
-  color: #e5e7eb;
-  margin: 0;
+body{
+  font-family:Arial,sans-serif;
+  background:#020617;
+  color:#e5e7eb;
 }
-.container {
-  max-width: 1050px;
-  margin: 40px auto;
-  background: #020617;
-  padding: 30px;
-  border-radius: 18px;
+.container{
+  max-width:1100px;
+  margin:40px auto;
+  background:#020024;
+  padding:30px;
+  border-radius:18px;
 }
-h1, h2 {
-  text-align: center;
-  color: #facc15;
+h1,h2{color:#facc15;text-align:center}
+label{display:block;margin-top:14px;font-weight:bold}
+input,select{
+  width:100%;padding:10px;margin-top:6px;border-radius:6px;border:none
 }
-label {
-  margin-top: 14px;
-  display: block;
-  font-weight: bold;
+button{
+  margin-top:25px;width:100%;padding:16px;
+  font-size:18px;background:#2563eb;color:#fff;
+  border:none;border-radius:10px;cursor:pointer
 }
-input, select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
-  border-radius: 6px;
-  border: none;
+.section{
+  margin-top:30px;background:#020617;
+  padding:20px;border-radius:14px
 }
-.note, .alert {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 6px;
-}
-.note { background:#020024; border-left:4px solid #facc15; }
-.alert { background:#1e293b; border-left:4px solid #ef4444; }
-button {
-  margin-top: 25px;
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
-  background: #2563eb;
-  border-radius: 10px;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
-.section {
-  margin-top: 30px;
-  background: #020024;
-  padding: 20px;
-  border-radius: 14px;
-}
-canvas { width:100%; height:260px; }
-.tag {
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:8px;
-  font-weight:bold;
-}
+.alert{background:#1e293b;border-left:4px solid #ef4444;padding:12px;margin-top:12px}
+.note{background:#020024;border-left:4px solid #facc15;padding:12px;margin-top:12px}
+.tag{padding:6px 12px;border-radius:8px;font-weight:bold}
 .green{background:#22c55e;color:#000}
 .yellow{background:#facc15;color:#000}
 .red{background:#ef4444;color:#fff}
+canvas{width:100%;height:260px}
 </style>
 </head>
 
@@ -78,16 +48,9 @@ canvas { width:100%; height:260px; }
 
 <label>Ativo</label>
 <select id="ativo">
-  <optgroup label="Índices / ETFs">
-    <option>SPY</option>
-    <option>SPX</option>
-    <option>XSP</option>
-    <option>QQQ</option>
-  </optgroup>
-  <optgroup label="7 Magníficas">
-    <option>AAPL</option><option>MSFT</option><option>AMZN</option>
-    <option>NVDA</option><option>GOOGL</option><option>META</option><option>TSLA</option>
-  </optgroup>
+<option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
+<option>AAPL</option><option>MSFT</option><option>NVDA</option>
+<option>AMZN</option><option>GOOGL</option><option>META</option><option>TSLA</option>
 </select>
 
 <label>Preço Atual</label>
@@ -102,34 +65,33 @@ canvas { width:100%; height:260px; }
 <label>Volatilidade (%)</label>
 <input id="vol" type="number" value="20">
 
-<label>Estrutura da Operação</label>
+<label>Estrutura</label>
 <select id="estrutura">
-  <option value="call_buy">Call Comprada</option>
-  <option value="put_buy">Put Comprada</option>
-  <option value="call_sell">Call Vendida (Naked)</option>
-  <option value="put_sell">Put Vendida (Naked)</option>
-  <option disabled>────────────</option>
-  <option value="bull_call">Bull Call Spread</option>
-  <option value="bear_put">Bear Put Spread</option>
+<option value="call_buy">Call Comprada</option>
+<option value="put_buy">Put Comprada</option>
+<option value="call_sell">Call Vendida (Naked)</option>
+<option value="put_sell">Put Vendida (Naked)</option>
+<option disabled>────────</option>
+<option value="bull_call">Bull Call Spread</option>
+<option value="bear_put">Bear Put Spread</option>
 </select>
 
 <div class="alert">
-⚠️ Venda de opções envolve risco elevado e exigência de margem.  
-Este simulador é educacional.
+⚠️ Vendas de opções exigem margem e podem gerar perdas elevadas.
 </div>
 
 <div class="note">
-📌 Compare com o gráfico abaixo antes de analisar.  
-O modelo não substitui leitura de contexto.
+📌 Compare sempre com o gráfico antes de tomar decisão.
 </div>
 
-<button onclick="analisar()">📈 Analisar Operação</button>
+<button onclick="analisar()">📈 Analisar</button>
 
 <div id="resultado" class="section"></div>
 
 <div class="section">
-<h2>📉 Payoff (simplificado)</h2>
+<h2>📉 Payoff</h2>
 <canvas id="payoff"></canvas>
+<div id="payoffMsg"></div>
 </div>
 
 <div class="section">
@@ -140,26 +102,34 @@ O modelo não substitui leitura de contexto.
 </div>
 
 <script>
-// ==== Funções matemáticas ====
+// ===== util =====
 function erf(x){
  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
- const sign=x<0?-1:1; x=Math.abs(x);
+ const s=x<0?-1:1; x=Math.abs(x);
  const t=1/(1+p*x);
  const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
- return sign*y;
+ return s*y;
 }
-function N(x){ return 0.5*(1+erf(x/Math.sqrt(2))); }
+const N=x=>0.5*(1+erf(x/Math.sqrt(2)));
 
 function analisar(){
- const S=+S.value, K=+K.value, T=+T.value/365, σ=+vol.value/100;
- const r=0.05, estrutura=estrutura_el.value;
+ try{
+ const S=+document.getElementById("S").value;
+ const K=+document.getElementById("K").value;
+ const T=+document.getElementById("T").value/365;
+ const vol=+document.getElementById("vol").value/100;
+ const estrutura=document.getElementById("estrutura").value;
+ const ativo=document.getElementById("ativo").value;
 
- const d1=(Math.log(S/K)+(r+0.5*σ*σ)*T)/(σ*Math.sqrt(T));
- const d2=d1-σ*Math.sqrt(T);
+ const r=0.05;
+ const d1=(Math.log(S/K)+(r+0.5*vol*vol)*T)/(vol*Math.sqrt(T));
+ const d2=d1-vol*Math.sqrt(T);
 
  let preco=S*N(d1)-K*Math.exp(-r*T)*N(d2);
  let delta=N(d1);
- let pop=(1-delta)*100;
+ let pop=(1-Math.abs(delta))*100;
+
+ let moneyness = S>K?"ITM":(S<K?"OTM":"ATM");
 
  let perfil="Iniciante", risco="Limitado", tag="green", texto="";
 
@@ -167,38 +137,45 @@ function analisar(){
    preco=K*Math.exp(-r*T)*N(-d2)-S*N(-d1);
    delta=N(d1)-1;
    pop=Math.abs(delta)*100;
-   texto="Direcional de baixa com risco limitado ao prêmio.";
+   texto="Proteção ou direcional de baixa. Perda limitada.";
  }
  if(estrutura.includes("sell")){
    perfil="Avançado"; risco="Elevado"; tag="red";
-   texto="Venda de opção sem proteção. Exige margem.";
-   pop=Math.abs(delta)*100;
+   texto="Venda naked. Saia rápido antes que tudo vire merda.";
  }
  if(estrutura.includes("spread")){
    perfil="Intermediário"; risco="Limitado"; tag="yellow";
-   texto="Spread vertical com risco e retorno limitados.";
+   texto="Spread vertical com controle de risco.";
    pop=60;
  }
 
- resultado.innerHTML=`
- <h2>📐 Black-Scholes & Risco</h2>
+ document.getElementById("resultado").innerHTML=`
+ <h2>📐 Análise</h2>
  <p><b>Preço Teórico:</b> $${preco.toFixed(2)}</p>
  <p><b>Delta:</b> ${delta.toFixed(2)}</p>
- <p><b>POP (educacional):</b> ${pop.toFixed(0)}%</p>
+ <p><b>POP:</b> ${pop.toFixed(0)}%</p>
+ <p><b>Moneyness:</b> ${moneyness}</p>
  <p><b>Perfil:</b> <span class="tag ${tag}">${perfil}</span></p>
  <p><b>Risco:</b> ${risco}</p>
  <p>${texto}</p>
  `;
 
- tv.src=`https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=60&theme=dark`;
- desenharPayoff(S,K);
+ document.getElementById("tv").src=
+ `https://s.tradingview.com/widgetembed/?symbol=${ativo}&interval=60&theme=dark`;
+
+ desenharPayoff(S,K,estrutura);
+ }catch(e){
+ alert("Erro na análise. Verifique os campos.");
+ }
 }
 
-function desenharPayoff(S,K){
- const c=payoff,ctx=c.getContext("2d");
+function desenharPayoff(S,K,estrutura){
+ const c=document.getElementById("payoff");
+ const ctx=c.getContext("2d");
  c.width=c.offsetWidth; c.height=260;
  ctx.clearRect(0,0,c.width,c.height);
  ctx.beginPath(); ctx.strokeStyle="#22c55e"; ctx.lineWidth=3;
+
  for(let x=0;x<=c.width;x++){
    const p=S-30+(x/c.width)*60;
    const pf=Math.max(p-K,0);
@@ -206,11 +183,14 @@ function desenharPayoff(S,K){
    if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
  }
  ctx.stroke();
-}
 
-const estrutura_el=document.getElementById("estrutura");
+ document.getElementById("payoffMsg").innerHTML=`
+ <p>🔴 Abaixo do breakeven: começa a dor</p>
+ <p>🟡 No breakeven: zona neutra</p>
+ <p>🟢 Acima do breakeven: você dorme melhor</p>
+ `;
+}
 </script>
 
 </body>
 </html>
-
