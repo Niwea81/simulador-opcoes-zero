@@ -2,182 +2,166 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Cadeia de Opções Educacional</title>
+<title>Simulador Educacional de Opções</title>
 
 <style>
-body{
-  background:#020617;
-  color:#e5e7eb;
-  font-family:Arial, sans-serif;
-}
+body{background:#020617;color:#e5e7eb;font-family:Arial}
+.container{max-width:1200px;margin:30px auto;background:#020024;padding:30px;border-radius:20px}
+h1,h2,h3{color:#facc15;text-align:center}
+label{display:block;margin-top:14px;font-weight:bold}
+input,select{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:none}
+button{margin-top:25px;width:100%;padding:16px;font-size:18px;background:#2563eb;color:white;border:none;border-radius:12px;cursor:pointer}
+.section{margin-top:30px;background:#020617;padding:20px;border-radius:16px}
+.guided{background:#020024;border-left:4px solid #22c55e;padding:18px;margin-top:20px}
+.note{background:#020024;border-left:4px solid #facc15;padding:14px;margin-top:14px}
+canvas{width:100%;height:360px;background:#020024;border-radius:12px}
+.legend{margin-top:10px;font-size:14px}
+iframe{width:100%;height:420px;border:none;border-radius:14px}
 
-.container{
-  max-width:1100px;
-  margin:30px auto;
-  background:#020024;
-  padding:30px;
-  border-radius:20px;
-}
-
-h1{
-  color:#facc15;
-  text-align:center;
-}
-
-label{
-  display:block;
-  margin-top:16px;
-  font-weight:bold;
-}
-
-input, select{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:none;
-  background:#020617;
-  color:#e5e7eb;
-}
-
-/* ===== Cadeia ===== */
-
-.chain-box{
-  margin-top:40px;
-  background:#020617;
-  border-radius:16px;
-  padding:20px;
-}
-
-.chain-title{
-  text-align:center;
-  font-size:20px;
-  color:#facc15;
-  margin-bottom:16px;
-}
-
-.chain-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:14px;
-}
-
-.chain-table th{
-  background:#020024;
-  color:#94a3b8;
-  padding:8px;
-}
-
-.chain-table td{
-  padding:8px;
-  text-align:center;
-  border-bottom:1px solid #020024;
-}
-
-/* Moneyness */
-.itm{ background:#064e3b; }
-.atm{ background:#78350f; font-weight:bold; }
-.otm{ background:#020617; }
-
-/* Cores */
-.put{ color:#38bdf8; }
-.call{ color:#22c55e; }
-
-.legend{
-  margin-top:14px;
-  font-size:13px;
-  color:#94a3b8;
-}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{padding:8px;text-align:center;font-size:14px}
+th{background:#020024;color:#facc15}
+.itm{background:#064e3b}
+.atm{background:#78350f}
+.otm{background:#1e293b}
+.strike{font-weight:bold;color:#facc15}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<h1>📊 Cadeia de Opções Educacional</h1>
+<h1>📊 Simulador Educacional de Opções</h1>
 
 <label>Ativo</label>
-<select id="ativo">
-  <option>SPY</option>
-  <option>SPX</option>
-  <option>XSP</option>
-  <option>QQQ</option>
+<select id="ativo" onchange="atualizarGrafico()">
+  <option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
+  <option>AAPL</option><option>MSFT</option><option>AMZN</option><option>GOOGL</option>
+  <option>META</option><option>NVDA</option><option>TSLA</option>
 </select>
+
+<div class="section">
+<h2>📈 Gráfico de Contexto</h2>
+<iframe id="tv"></iframe>
+<p style="color:#94a3b8">Compare com o gráfico antes de decidir.</p>
+</div>
 
 <label>Preço atual do ativo</label>
-<input id="preco" type="number" value="100" step="0.5">
+<input id="S" type="number" value="100" oninput="autoStrike();gerarCadeia()">
 
-<label>DTE</label>
-<select id="dte">
-  <option>7</option>
-  <option>14</option>
+<label>Volatilidade Implícita (%)</label>
+<input id="iv" type="number" value="20">
+
+<label>Dias até o Vencimento (DTE)</label>
+<input id="dte" type="number" value="7">
+
+<label>Estrutura</label>
+<select id="estrutura" onchange="ajustarEstrutura();autoStrike()">
+  <option value="callLong">Call Comprada</option>
+  <option value="putLong">Put Comprada</option>
+  <option value="callShort">Call Vendida</option>
+  <option value="putShort">Put Vendida</option>
+  <option value="bull">Bull Call Spread</option>
+  <option value="bear">Bear Put Spread</option>
 </select>
 
-<div class="chain-box">
-  <div class="chain-title">🧩 Cadeia de Opções (Simulada)</div>
+<div id="riscoEstrutura"></div>
 
-  <table class="chain-table">
-    <thead>
-      <tr>
-        <th>PUT BID</th>
-        <th>PUT ASK</th>
-        <th>STRIKE</th>
-        <th>CALL BID</th>
-        <th>CALL ASK</th>
-      </tr>
-    </thead>
-    <tbody id="chainBody"></tbody>
-  </table>
-
-  <div class="legend">
-    🟩 ITM &nbsp; 🟧 ATM &nbsp; ⬛ OTM  
-    <br>Visual educacional inspirado em Tastytrade / Thinkorswim
-  </div>
+<div id="single">
+<label>Strike</label>
+<input id="K" type="number" value="100">
 </div>
+
+<div id="spread" style="display:none">
+<label>Strike Comprado</label>
+<input id="Kbuy" type="number" value="95">
+<label>Strike Vendido</label>
+<input id="Ksell" type="number" value="105">
+</div>
+
+<button onclick="analisar()">📊 Analisar</button>
+
+<div class="section">
+<h2>🧩 Cadeia de Opções (Simulada)</h2>
+<p style="color:#94a3b8">Visual educacional inspirado em Tastytrade / TOS</p>
+<div id="cadeia"></div>
+</div>
+
+<div class="section">
+<h2>📉 Payoff no Vencimento</h2>
+<canvas id="payoff"></canvas>
+<div class="legend">
+🟢 Lucro &nbsp; 🔴 Prejuízo &nbsp; 🟡 Break-even
+</div>
+</div>
+
+<div id="resultado" class="section"></div>
+<div id="aula" class="guided"></div>
 
 </div>
 
 <script>
-function gerarCadeia(){
-  const S = Number(document.getElementById("preco").value);
-  const passo = 2;
-  const tbody = document.getElementById("chainBody");
-  tbody.innerHTML = "";
+function atualizarGrafico(){
+  tv.src=`https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=15&theme=dark`;
+}
+atualizarGrafico();
 
-  const strikes = [];
-  for(let i=-5;i<=4;i++){
-    strikes.push(Math.round((S + i*passo)*100)/100);
-  }
-
-  strikes.forEach(strike=>{
-    let classeStrike = "otm";
-    if(strike === Math.round(S)) classeStrike = "atm";
-
-    let classePut = strike > S ? "otm" : "itm";
-    let classeCall = strike < S ? "otm" : "itm";
-
-    const putBid = Math.max((S - strike)*0.12,0.25).toFixed(2);
-    const putAsk = (putBid*1.15).toFixed(2);
-    const callBid = Math.max((strike - S)*0.12,0.25).toFixed(2);
-    const callAsk = (callBid*1.15).toFixed(2);
-
-    tbody.innerHTML += `
-      <tr>
-        <td class="put ${classePut}">${putBid}</td>
-        <td class="put ${classePut}">${putAsk}</td>
-        <td class="${classeStrike}">${strike}</td>
-        <td class="call ${classeCall}">${callBid}</td>
-        <td class="call ${classeCall}">${callAsk}</td>
-      </tr>
-    `;
-  });
+function autoStrike(){
+  const S0=+S.value;
+  if(estrutura.value.includes("call")) K.value=Math.round(S0*1.01);
+  if(estrutura.value.includes("put")) K.value=Math.round(S0*0.99);
 }
 
-document.getElementById("preco").addEventListener("input", gerarCadeia);
-document.getElementById("dte").addEventListener("change", gerarCadeia);
+function ajustarEstrutura(){
+  const e=estrutura.value;
+  single.style.display=(e!=="bull"&&e!=="bear")?"block":"none";
+  spread.style.display=(e==="bull"||e==="bear")?"block":"none";
 
-gerarCadeia();
+  const txt={
+    callLong:"✔️ Risco limitado ao prêmio.",
+    putLong:"✔️ Risco limitado ao prêmio.",
+    callShort:"⚠️ Risco ilimitado. Margem obrigatória.",
+    putShort:"⚠️ Pode exigir compra do ativo.",
+    bull:"✔️ Risco e ganho limitados.",
+    bear:"✔️ Risco e ganho limitados."
+  }[e];
+
+  riscoEstrutura.innerHTML=`<div class="note">${txt}</div>`;
+}
+
+function gerarCadeia(){
+  const S0=+S.value;
+  let html=`<table>
+  <tr><th>PUT</th><th>Strike</th><th>CALL</th></tr>`;
+  for(let i=-5;i<=5;i++){
+    const k=Math.round(S0+i*2);
+    const m=k<S0?"itm":k>S0?"otm":"atm";
+    html+=`
+    <tr>
+      <td class="${k>S0?'otm':'itm'}">Put</td>
+      <td class="strike ${m}">${k}</td>
+      <td class="${k<S0?'otm':'itm'}">Call</td>
+    </tr>`;
+  }
+  html+=`</table>`;
+  cadeia.innerHTML=html;
+}
+
+function analisar(){
+  gerarCadeia();
+  resultado.innerHTML=`<h2>📐 Variáveis</h2><p>Análise educacional concluída.</p>`;
+  aula.innerHTML=`<h3>🎓 Aula Guiada</h3>
+  <p>Observe a cadeia antes de montar a estrutura.</p>
+  <p>ITM, ATM e OTM mudam completamente o risco.</p>`;
+}
+
+function desenharPayoff(){}
+ajustarEstrutura();autoStrike();gerarCadeia();
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
