@@ -75,27 +75,13 @@ input, select{
 }
 
 /* Moneyness */
-.itm{
-  background:#064e3b;
-}
-
-.atm{
-  background:#78350f;
-  font-weight:bold;
-}
-
-.otm{
-  background:#020617;
-}
+.itm{ background:#064e3b; }
+.atm{ background:#78350f; font-weight:bold; }
+.otm{ background:#020617; }
 
 /* Cores */
-.put{
-  color:#38bdf8;
-}
-
-.call{
-  color:#22c55e;
-}
+.put{ color:#38bdf8; }
+.call{ color:#22c55e; }
 
 .legend{
   margin-top:14px;
@@ -119,9 +105,9 @@ input, select{
 </select>
 
 <label>Preço atual do ativo</label>
-<input id="preco" type="number" value="100">
+<input id="preco" type="number" value="100" step="0.5">
 
-<label>DTE (7 ou 14 dias)</label>
+<label>DTE</label>
 <select id="dte">
   <option>7</option>
   <option>14</option>
@@ -144,7 +130,7 @@ input, select{
   </table>
 
   <div class="legend">
-    🟩 ITM &nbsp;&nbsp; 🟧 ATM &nbsp;&nbsp; ⬛ OTM  
+    🟩 ITM &nbsp; 🟧 ATM &nbsp; ⬛ OTM  
     <br>Visual educacional inspirado em Tastytrade / Thinkorswim
   </div>
 </div>
@@ -153,22 +139,22 @@ input, select{
 
 <script>
 function gerarCadeia(){
-  const S = Number(preco.value);
+  const S = Number(document.getElementById("preco").value);
   const passo = 2;
-  const strikes = [];
-
-  for(let i=-5;i<=4;i++){
-    strikes.push(Math.round(S + i*passo));
-  }
-
   const tbody = document.getElementById("chainBody");
   tbody.innerHTML = "";
 
+  const strikes = [];
+  for(let i=-5;i<=4;i++){
+    strikes.push(Math.round((S + i*passo)*100)/100);
+  }
+
   strikes.forEach(strike=>{
-    let classe = "otm";
-    if(strike === Math.round(S)) classe = "atm";
-    if(strike < S) classePut = "itm"; else classePut = "otm";
-    if(strike > S) classeCall = "itm"; else classeCall = "otm";
+    let classeStrike = "otm";
+    if(strike === Math.round(S)) classeStrike = "atm";
+
+    let classePut = strike > S ? "otm" : "itm";
+    let classeCall = strike < S ? "otm" : "itm";
 
     const putBid = Math.max((S - strike)*0.12,0.25).toFixed(2);
     const putAsk = (putBid*1.15).toFixed(2);
@@ -179,7 +165,7 @@ function gerarCadeia(){
       <tr>
         <td class="put ${classePut}">${putBid}</td>
         <td class="put ${classePut}">${putAsk}</td>
-        <td class="${classe}">${strike}</td>
+        <td class="${classeStrike}">${strike}</td>
         <td class="call ${classeCall}">${callBid}</td>
         <td class="call ${classeCall}">${callAsk}</td>
       </tr>
@@ -187,13 +173,14 @@ function gerarCadeia(){
   });
 }
 
-preco.addEventListener("input", gerarCadeia);
+document.getElementById("preco").addEventListener("input", gerarCadeia);
+document.getElementById("dte").addEventListener("change", gerarCadeia);
+
 gerarCadeia();
 </script>
 
 </body>
 </html>
-
 
 
 
