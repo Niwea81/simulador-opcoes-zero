@@ -38,6 +38,132 @@ iframe{width:100%;height:420px;border:none;border-radius:14px}
 <p style="color:#94a3b8">Compare com o gráfico antes de decidir.</p>
 </div>
 
+  <div class="section">
+  <h2>🧭 Construção Guiada de um Trade de Opções</h2>
+  <p style="color:#94a3b8">Siga as etapas na ordem. Isso simula o raciocínio de um trader profissional.</p>
+
+  <!-- ETAPAS -->
+  <div class="steps">
+    <button class="step active" onclick="showStep(1)">1️⃣ Ambiente</button>
+    <button class="step" onclick="showStep(2)">2️⃣ Volatilidade</button>
+    <button class="step" onclick="showStep(3)">3️⃣ Gráfico</button>
+    <button class="step" onclick="showStep(4)">4️⃣ Direção</button>
+    <button class="step" onclick="showStep(5)">5️⃣ Estrutura</button>
+    <button class="step" onclick="showStep(6)">6️⃣ Strike</button>
+    <button class="step" onclick="showStep(7)">7️⃣ Validação</button>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <div id="stepContent" class="guided"></div>
+</div>
+
+<style>
+.steps {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:20px;
+}
+.step {
+  padding:10px;
+  border-radius:10px;
+  background:#020617;
+  color:#94a3b8;
+  border:1px solid #1e293b;
+  cursor:pointer;
+  font-size:13px;
+}
+.step.active {
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+}
+</style>
+
+<script>
+function showStep(n){
+  document.querySelectorAll(".step").forEach((b,i)=>{
+    b.classList.toggle("active", i===n-1);
+  });
+
+  const content = {
+    1: `
+      <h3>🌍 Ambiente de Mercado</h3>
+      <p>Existe evento econômico relevante hoje (3⭐)?</p>
+      <ul>
+        <li>FOMC, CPI, Payroll</li>
+        <li>Resultados relevantes</li>
+      </ul>
+      <p><b>Regra:</b> Ambiente hostil → não forçar trade.</p>
+    `,
+    2: `
+      <h3>🌪️ Volatilidade</h3>
+      <p>Antes de CALL ou PUT, avalie:</p>
+      <ul>
+        <li>IV está baixa, média ou alta?</li>
+        <li>IV Rank confirma?</li>
+        <li>VIX acima de 20 indica stress</li>
+      </ul>
+      <p><b>Regra:</b> IV baixa → compra | IV alta → venda</p>
+    `,
+    3: `
+      <h3>📈 Estrutura do Gráfico</h3>
+      <p>O preço está:</p>
+      <ul>
+        <li>Em tendência?</li>
+        <li>Em consolidação?</li>
+        <li>Retornando à VWAP?</li>
+      </ul>
+      <p><b>Regra:</b> Opções sofrem em mercado sem estrutura.</p>
+    `,
+    4: `
+      <h3>🧭 Viés Direcional</h3>
+      <p>Somente agora defina:</p>
+      <ul>
+        <li>Alta</li>
+        <li>Baixa</li>
+        <li>Neutro</li>
+      </ul>
+      <p><b>Regra:</b> Direção vem depois do contexto.</p>
+    `,
+    5: `
+      <h3>🧱 Estrutura de Opções</h3>
+      <p>Escolha a estrutura, não o strike:</p>
+      <ul>
+        <li>Compra ou venda?</li>
+        <li>Risco definido ou ilimitado?</li>
+        <li>Spread ou posição simples?</li>
+      </ul>
+      <p><b>Aviso:</b> Vendas exigem margem ou ativo.</p>
+    `,
+    6: `
+      <h3>🎯 Strike & Moneyness</h3>
+      <p>Agora sim:</p>
+      <ul>
+        <li>ITM → maior probabilidade</li>
+        <li>ATM → equilíbrio</li>
+        <li>OTM → menor custo / menor chance</li>
+      </ul>
+      <p><b>Regra:</b> Strike define probabilidade, não opinião.</p>
+    `,
+    7: `
+      <h3>✅ Validação Final</h3>
+      <ul>
+        <li>POP ≥ 70%</li>
+        <li>Risco máximo conhecido</li>
+        <li>Payoff faz sentido?</li>
+      </ul>
+      <p style="color:#22c55e"><b>Se tudo ok:</b> Simulação educacional liberada.</p>
+      <p style="color:#f87171"><b>Se não:</b> Trade rejeitado.</p>
+    `
+  };
+
+  document.getElementById("stepContent").innerHTML = content[n];
+}
+
+showStep(1);
+</script>
+
 <label>Preço atual do ativo</label>
 <input id="S" type="number" value="100" oninput="autoStrike()">
 
@@ -377,116 +503,6 @@ function showStep(n){
 showStep(1);
 </script>
 
-<!-- CHECKLIST EDUCACIONAL -->
-<div class="section">
-  <h2>🧠 Checklist Educacional antes da Estrutura</h2>
-  <p style="color:#94a3b8">
-    Responda com honestidade. O objetivo é aprender a filtrar trades ruins.
-  </p>
-
-  <!-- BLOCO 1 -->
-  <h3>1️⃣ Contexto de Mercado</h3>
-  <label><input type="checkbox" class="chk contexto" value="alta"> Tendência de alta</label>
-  <label><input type="checkbox" class="chk contexto" value="baixa"> Tendência de baixa</label>
-  <label><input type="checkbox" class="chk contexto" value="lateral"> Mercado lateral / consolidação</label>
-
-  <!-- BLOCO 2 -->
-  <h3>2️⃣ Volatilidade & Ambiente</h3>
-  <label><input type="checkbox" class="chk vol" value="iv_baixa"> IV abaixo da média histórica</label>
-  <label><input type="checkbox" class="chk vol" value="iv_media"> IV próxima da média</label>
-  <label><input type="checkbox" class="chk vol" value="iv_alta"> IV acima da média</label>
-
-  <label><input type="checkbox" class="chk vol" value="vix_alto"> VIX acima de 20</label>
-  <label><input type="checkbox" class="chk vol" value="evento"> Evento relevante próximo (3⭐)</label>
-
-  <!-- BLOCO 3 -->
-  <h3>3️⃣ Perfil do Trader</h3>
-  <label><input type="radio" name="perfil" value="iniciante"> Iniciante</label>
-  <label><input type="radio" name="perfil" value="moderado"> Moderado</label>
-  <label><input type="radio" name="perfil" value="agressivo"> Agressivo</label>
-
-  <!-- BLOCO 4 -->
-  <h3>4️⃣ Consistência</h3>
-  <label><input type="checkbox" id="pop70"> POP estimada ≥ 70%</label>
-  <label><input type="checkbox" id="risco"> Risco máximo conhecido</label>
-
-  <button onclick="avaliarChecklist()">📊 Avaliar Checklist</button>
-
-  <div id="feedbackChecklist" class="note" style="display:none"></div>
-</div>
-
-<script>
-function avaliarChecklist() {
-  const feedback = document.getElementById("feedbackChecklist");
-  feedback.style.display = "block";
-
-  const contexto = document.querySelectorAll(".contexto:checked").length;
-  const volAlta = document.querySelector(".vol[value='iv_alta']")?.checked;
-  const evento = document.querySelector(".vol[value='evento']")?.checked;
-  const perfil = document.querySelector("input[name='perfil']:checked")?.value;
-  const popOk = document.getElementById("pop70").checked;
-  const riscoOk = document.getElementById("risco").checked;
-
-  // Regras educacionais
-  if (!perfil) {
-    feedback.innerHTML = "⚠️ Escolha seu perfil antes de continuar.";
-    return;
-  }
-
-  if (contexto === 0) {
-    feedback.innerHTML = "⚠️ Contexto indefinido. Evite estruturar opções sem viés claro.";
-    return;
-  }
-
-  if (evento) {
-    feedback.innerHTML = "⚠️ Evento relevante próximo. A volatilidade pode mudar tudo.";
-    return;
-  }
-
-  if (!popOk || !riscoOk) {
-    feedback.innerHTML = "❌ Estrutura reprovada. Probabilidade ou risco insuficientes.";
-    return;
-  }
-
-  // Sugestões educacionais (sem recomendação)
-  let exemplo = "";
-
-  if (perfil === "iniciante") {
-    exemplo = `
-      🟢 <b>Exemplos educacionais compatíveis:</b><br>
-      • Bull Call Spread<br>
-      • Bear Put Spread<br>
-      • Call comprada ITM<br><br>
-      ❌ Evite vendas secas e risco ilimitado.
-    `;
-  }
-
-  if (perfil === "moderado") {
-    exemplo = `
-      🟡 <b>Exemplos educacionais compatíveis:</b><br>
-      • Debit spreads<br>
-      • Call ou Put ATM<br>
-      • Estruturas com risco definido
-    `;
-  }
-
-  if (perfil === "agressivo") {
-    exemplo = `
-      🔴 <b>Exemplos educacionais compatíveis:</b><br>
-      • Put vendida OTM<br>
-      • Call vendida coberta<br>
-      ⚠️ Exige margem, disciplina e controle emocional
-    `;
-  }
-
-  feedback.innerHTML = `
-    ✅ Checklist aprovado para estudo.<br><br>
-    ${exemplo}
-    <br>
-    <small>Exemplo educacional. Não constitui recomendação de investimento.</small>
-  `;
-}
-</script>
 
 </body>
 </html>
