@@ -220,155 +220,129 @@ showStep(1);
   <div id="feedbackChecklist" class="note" style="display:none"></div>
 </div>
 
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Calculadora de Probabilidade – Opções</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Calculadora de Probabilidade</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background:#151a18;
+      color:#eee;
+      padding:20px;
+    }
+    input, button {
+      padding:8px;
+      margin:5px 0;
+      width:100%;
+    }
+    button {
+      background:#2ecc71;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+    .box {
+      max-width:420px;
+      margin:auto;
+      background:#1f2523;
+      padding:20px;
+      border-radius:8px;
+    }
+    .result {
+      margin-top:15px;
+      background:#111;
+      padding:10px;
+      border-radius:6px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="calculator">
-  <h1>📊 Calculadora de Probabilidade</h1>
-  <p class="subtitle">Opções – Compra ou Venda Simples</p>
+<div class="box" id="calculator">
+  <h2>Calculadora de Probabilidade</h2>
 
-  <div class="input-group">
-    <label>Ativo</label>
-    <input type="text" id="assetName" placeholder="Ex: SPX, AAPL, PETR4">
-  </div>
+  <label>Current Price</label>
+  <input type="number" id="price" step="0.01">
 
-  <div class="input-group">
-    <label>Preço Atual</label>
-    <input type="number" id="currentPrice" placeholder="Ex: 5000">
-  </div>
-
-  <div class="input-group">
-    <label>Data Futura</label>
-    <input type="date" id="futureDate">
-  </div>
-
-  <div class="input-group">
-    <label>Volatilidade Anual (%)</label>
-    <input type="number" id="volatility" placeholder="Ex: 20">
-  </div>
-
-  <div class="targets">
-    <div class="input-group">
-      <label>Primeiro Alvo</label>
-      <input type="number" id="target1" placeholder="Ex: 4800">
-    </div>
-    <div class="input-group">
-      <label>Segundo Alvo</label>
-      <input type="number" id="target2" placeholder="Ex: 5200">
-    </div>
-  </div>
-
-  <button onclick="calculate()">Calcular Probabilidade</button>
-
-  <div class="result">
-    <h2 id="assetTitle"></h2>
-    <p id="probability" class="probability">—</p>
-    <p id="details"></p>
-  </div>
-
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
-  <section class="prob-calculator">
-  <h2>📊 Calculadora de Probabilidade</h2>
-
-  <label>Ativo</label>
-  <input type="text" id="assetName" placeholder="Ex: XSP">
-
-  <label>Preço Atual</label>
-  <input type="number" id="currentPrice">
-
-  <label>Data Futura</label>
+  <label>Future Date</label>
   <input type="date" id="futureDate">
 
-  <label>Volatilidade (%)</label>
-  <input type="number" id="volatility" step="0.1">
+  <label>Days Ahead (opcional)</label>
+  <input type="number" id="daysAhead">
 
-  <label>Target Inferior</label>
-  <input type="number" id="targetLow">
+  <label>Future Volatility (%)</label>
+  <input type="number" id="volatility" step="0.01">
 
-  <label>Target Superior</label>
-  <input type="number" id="targetHigh">
+  <label>First Target</label>
+  <input type="number" id="target1" step="0.01">
 
-  <button onclick="calculate()">Calcular Probabilidade</button>
+  <label>Second Target</label>
+  <input type="number" id="target2" step="0.01">
 
-  <div class="result">
-    <h3>Probabilidade Estimada</h3>
-    <span id="probability">--%</span>
-  </div>
-</section>
+  <button onclick="calculate()">Click here to calculate</button>
 
-  .prob-calculator {
-  max-width: 420px;
-  margin: 40px auto;
-  padding: 25px;
-  background: radial-gradient(circle at top, #1f2a26, #0f1513);
-  border: 1px solid #2f4f46;
-  border-radius: 14px;
-  box-shadow: 0 0 25px rgba(0,255,180,0.08);
+  <div class="result" id="output"></div>
+</div>
+
+<script>
+function normalCDF(z) {
+  return 0.5 * (1 + erf(z / Math.sqrt(2)));
 }
 
-.prob-calculator h2 {
-  text-align: center;
-  color: #7fffd4;
-  margin-bottom: 20px;
+function erf(x) {
+  const sign = (x >= 0) ? 1 : -1;
+  x = Math.abs(x);
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741,
+        a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
+  return sign * y;
 }
 
-.prob-calculator label {
-  font-size: 0.85rem;
-  color: #b8e0d2;
+function calculate() {
+  const S = parseFloat(price.value);
+  const vol = parseFloat(volatility.value) / 100;
+  const t1 = parseFloat(target1.value);
+  const t2 = parseFloat(target2.value);
+
+  let days;
+  if (daysAhead.value) {
+    days = parseFloat(daysAhead.value);
+  } else if (futureDate.value) {
+    const today = new Date();
+    const future = new Date(futureDate.value);
+    days = (future - today) / (1000*60*60*24);
+  } else {
+    alert("Informe a data futura ou os dias à frente.");
+    return;
+  }
+
+  const T = days / 365;
+  const sigmaPrice = S * vol * Math.sqrt(T);
+
+  const z1 = (t1 - S) / sigmaPrice;
+  const z2 = (t2 - S) / sigmaPrice;
+
+  const pBelow = normalCDF(Math.min(z1, z2)) * 100;
+  const pBetween = (normalCDF(Math.max(z1, z2)) - normalCDF(Math.min(z1, z2))) * 100;
+  const pAbove = (1 - normalCDF(Math.max(z1, z2))) * 100;
+
+  output.innerHTML = `
+    <b>Price at Each Standard Deviation</b><br>
+    -3σ: ${(S - 3*sigmaPrice).toFixed(2)}<br>
+    -2σ: ${(S - 2*sigmaPrice).toFixed(2)}<br>
+    -1σ: ${(S - sigmaPrice).toFixed(2)}<br>
+    +1σ: ${(S + sigmaPrice).toFixed(2)}<br>
+    +2σ: ${(S + 2*sigmaPrice).toFixed(2)}<br>
+    +3σ: ${(S + 3*sigmaPrice).toFixed(2)}<hr>
+    <b>Probabilities</b><br>
+    Finishing below lowest target: <b>${pBelow.toFixed(2)}%</b><br>
+    Finishing between two targets: <b>${pBetween.toFixed(2)}%</b><br>
+    Finishing above highest target: <b>${pAbove.toFixed(2)}%</b>
+  `;
 }
-
-.prob-calculator input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  background: #0c1110;
-  border: 1px solid #2f4f46;
-  color: #fff;
-  border-radius: 6px;
-}
-
-.prob-calculator button {
-  width: 100%;
-  padding: 10px;
-  background: linear-gradient(135deg, #00c896, #009f74);
-  border: none;
-  color: #000;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.prob-calculator button:hover {
-  opacity: 0.9;
-}
-
-.result {
-  margin-top: 20px;
-  text-align: center;
-}
-
-#probability {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #00ffb3;
-}
-
-
-</script>
-
-</body>
-</html>
-
 </script>
 
 </body>
