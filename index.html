@@ -1,50 +1,185 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Checklist do Trader de Opções</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Simulador Educacional de Opções</title>
+
+<style>
+body{background:#020617;color:#e5e7eb;font-family:Arial}
+.container{max-width:1200px;margin:30px auto;background:#020024;padding:30px;border-radius:20px}
+h1,h2,h3{color:#facc15;text-align:center}
+label{display:block;margin-top:14px;font-weight:bold}
+input,select{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:none}
+button{margin-top:25px;width:100%;padding:16px;font-size:18px;background:#2563eb;color:white;border:none;border-radius:12px;cursor:pointer}
+.section{margin-top:30px;background:#020617;padding:20px;border-radius:16px}
+.guided{background:#020024;border-left:4px solid #22c55e;padding:18px;margin-top:20px}
+.note{background:#020024;border-left:4px solid #facc15;padding:14px;margin-top:14px}
+canvas{width:100%;height:360px;background:#020024;border-radius:12px}
+.legend{margin-top:10px;font-size:14px}
+iframe{width:100%;height:420px;border:none;border-radius:14px}
+</style>
 </head>
 
 <body>
+<div class="container">
 
-<h1>📋 Checklist do Trader de Opções</h1>
+<h1>📊 Simulador Educacional de Opções</h1>
 
-<!-- ETAPA 1 -->
-<h2>1️⃣ Ambiente de Mercado</h2>
-<div id="ambienteBox" class="note"></div>
-
-<!-- ETAPA 2 -->
-<h2>2️⃣ Volatilidade (IV)</h2>
-<input type="number" id="iv" placeholder="Digite a IV (%)">
-<div id="ivBox" class="note"></div>
-
-<!-- ETAPA 3 -->
-<h2>3️⃣ Ativo</h2>
-<select id="ativo">
-  <option value="SPX">SPX</option>
-  <option value="SPY">SPY</option>
-  <option value="XSP">XSP</option>
+<label>Ativo</label>
+<select id="ativo" onchange="atualizarGrafico()">
+  <option>SPY</option><option>SPX</option><option>XSP</option><option>QQQ</option>
+  <option>AAPL</option><option>MSFT</option><option>AMZN</option><option>GOOGL</option>
+  <option>META</option><option>NVDA</option><option>TSLA</option>
 </select>
 
-<div id="graficoBox" class="guided"></div>
+<div class="section">
+<h2>📈 Gráfico de Contexto</h2>
+<iframe id="tv"></iframe>
+<p style="color:#94a3b8">Compare com o gráfico antes de decidir.</p>
+</div>
 
-<!-- ETAPA 4 -->
-<h2>4️⃣ Estrutura</h2>
-<select id="estrutura">
-  <option value="">Selecione</option>
-  <option value="callLong">Call Long</option>
-  <option value="putLong">Put Long</option>
-  <option value="callSpread">Call Spread</option>
-  <option value="putSpread">Put Spread</option>
-  <option value="callShort">Call Short</option>
-  <option value="putShort">Put Short</option>
+<label>Preço atual do ativo</label>
+<input id="S" type="number" value="100" oninput="autoStrike()">
+
+<label>Volatilidade Implícita (%)</label>
+<input id="iv" type="number" value="20">
+
+<label>Dias até o Vencimento (DTE)</label>
+<input id="dte" type="number" value="7">
+
+<label>Estrutura</label>
+<select id="estrutura" onchange="ajustarEstrutura();autoStrike()">
+  <option value="callLong">Call Comprada</option>
+  <option value="putLong">Put Comprada</option>
+  <option value="callShort">Call Vendida</option>
+  <option value="putShort">Put Vendida</option>
+  <option value="bull">Bull Call Spread</option>
+  <option value="bear">Bear Put Spread</option>
 </select>
 
-<div id="estruturaBox" class="note"></div>
+<div id="riscoEstrutura"></div>
 
-<!-- IMPORTANTE -->
-<script src="script.js"></script>
+<div id="single">
+<label>Strike</label>
+<input id="K" type="number" value="100">
+</div>
+
+<div id="spread" style="display:none">
+<label>Strike Comprado</label>
+<input id="Kbuy" type="number" value="95">
+<label>Strike Vendido</label>
+<input id="Ksell" type="number" value="105">
+</div>
+
+<button onclick="analisar()">📊 Analisar</button>
+
+<div class="section">
+<h2>📉 Payoff no Vencimento</h2>
+<canvas id="payoff"></canvas>
+<div class="legend">
+🟢 Lucro &nbsp; 🔴 Prejuízo &nbsp; 🟡 Break-even
+</div>
+</div>
+
+<div id="resultado" class="section"></div>
+<div id="aula" class="guided"></div>
+
+</div>
+
+<script>
+function atualizarGrafico(){
+  tv.src=`https://s.tradingview.com/widgetembed/?symbol=${ativo.value}&interval=15&theme=dark`;
+}
+atualizarGrafico();
+
+function autoStrike(){
+  const S0=+S.value;
+  const e=estrutura.value;
+  if(e.includes("call")) K.value=Math.round(S0*1.01);
+  if(e.includes("put")) K.value=Math.round(S0*0.99);
+}
+
+function ajustarEstrutura(){
+  const e=estrutura.value;
+  single.style.display=(e!=="bull"&&e!=="bear")?"block":"none";
+  spread.style.display=(e==="bull"||e==="bear")?"block":"none";
+
+  let txt={
+    callLong:"✔️ Risco limitado ao prêmio pago.",
+    putLong:"✔️ Risco limitado ao prêmio pago.",
+    callShort:"⚠️ Call vendida: risco ilimitado. Exige margem.",
+    putShort:"⚠️ Put vendida: risco elevado. Pode exigir compra do ativo.",
+    bull:"✔️ Spread: risco e ganho limitados.",
+    bear:"✔️ Spread: risco e ganho limitados."
+  }[e];
+
+  riscoEstrutura.innerHTML=`<div class="note">${txt}</div>`;
+}
+
+function calcularPOP(S,K,iv,dte){
+  const dist=Math.abs(S-K)/S;
+  const vol=iv/100*Math.sqrt(dte/365);
+  let pop=1-(dist/vol);
+  return Math.max(0.05,Math.min(0.95,pop))*100;
+}
+
+function payoffValor(p,e,s){
+  if(e==="callLong") return Math.max(p-s[0],0);
+  if(e==="putLong") return Math.max(s[0]-p,0);
+  if(e==="callShort") return -Math.max(p-s[0],0);
+  if(e==="putShort") return -Math.max(s[0]-p,0);
+  if(e==="bull") return Math.max(p-s[0],0)-Math.max(p-s[1],0);
+  if(e==="bear") return Math.max(s[1]-p,0)-Math.max(s[0]-p,0);
+}
+
+function analisar(){
+  const S0=+S.value,iv0=+iv.value,dte0=+dte.value,e=estrutura.value;
+  let strikes=(e==="bull"||e==="bear")?[+Kbuy.value,+Ksell.value]:[+K.value];
+
+  const pop=calcularPOP(S0,strikes[0],iv0,dte0).toFixed(1);
+
+  desenharPayoff(S0,e,strikes);
+
+  resultado.innerHTML=`
+  <h2>📐 Variáveis da Operação</h2>
+  <p><b>IV:</b> ${iv0}%</p>
+  <p><b>DTE:</b> ${dte0} dias</p>
+  <p><b>POP estimada:</b> ${pop}%</p>
+  `;
+
+  aula.innerHTML=`
+  <h3>🎓 Aula Guiada</h3>
+  <p>Strike não é o preço do ativo.</p>
+  <p>POP alta não elimina risco.</p>
+  <p>Spreads reduzem volatilidade emocional.</p>
+  <p>Gerenciamento vem antes do lucro.</p>
+  `;
+}
+
+function desenharPayoff(S0,e,s){
+  const c=payoff,ctx=c.getContext("2d");
+  c.width=c.offsetWidth;c.height=360;
+  ctx.clearRect(0,0,c.width,c.height);
+
+  const min=S0*0.7,max=S0*1.3;
+  const zero=c.height/2;
+
+  ctx.strokeStyle="#facc15";
+  ctx.beginPath();ctx.moveTo(0,zero);ctx.lineTo(c.width,zero);ctx.stroke();
+
+  ctx.beginPath();
+  for(let x=0;x<=c.width;x++){
+    const p=min+(x/c.width)*(max-min);
+    const y=zero-payoffValor(p,e,s)*5;
+    x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle="#22c55e";
+  ctx.stroke();
+}
+
+ajustarEstrutura();autoStrike();
+</script>
 
 </body>
 </html>
+
