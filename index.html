@@ -220,273 +220,64 @@ showStep(1);
   <div id="feedbackChecklist" class="note" style="display:none"></div>
 </div>
 
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Calculadora de Probabilidade | Opções</title>
-
-<style>
-:root {
-  --bg: #0f1311;
-  --panel: #161c19;
-  --border: #27302c;
-  --text: #e6e6e6;
-  --muted: #9aa3a0;
-  --green: #2ecc71;
-  --yellow: #f1c40f;
-  --red: #e74c3c;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, Arial, sans-serif;
-  padding: 30px;
-}
-
-.container {
-  max-width: 880px;
-  margin: auto;
-}
-
-h1 {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.subtitle {
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 25px;
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 22px;
-  margin-bottom: 25px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-label {
-  font-size: 13px;
-  color: var(--muted);
-  display: block;
-  margin-bottom: 4px;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  background: #0c100e;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 14px;
-}
-
-input:focus {
-  outline: none;
-  border-color: var(--green);
-}
-
-.full {
-  grid-column: 1 / -1;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  background: var(--green);
-  border: none;
-  border-radius: 8px;
-  color: #0b0f0d;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-.result-box {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 18px;
-}
-
-.result {
-  padding: 14px;
-  border-radius: 8px;
-  background: #0c100e;
-  border-left: 5px solid;
-}
-
-.green { border-color: var(--green); }
-.yellow { border-color: var(--yellow); }
-.red { border-color: var(--red); }
-
-.result h3 {
-  margin: 0 0 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.result span {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.sigma {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.sigma div {
-  background: #0c100e;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px;
-  text-align: center;
-  font-size: 12px;
-}
-
-.footer {
-  font-size: 12px;
-  color: var(--muted);
-  text-align: center;
-  margin-top: 20px;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Calculadora de Probabilidade – Opções</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-<div class="container">
-  <h1>Calculadora de Probabilidade Estatística</h1>
-  <div class="subtitle">
-    Ferramenta educacional para avaliação de risco em operações com opções
+<div class="calculator">
+  <h1>📊 Calculadora de Probabilidade</h1>
+  <p class="subtitle">Opções – Compra ou Venda Simples</p>
+
+  <div class="input-group">
+    <label>Ativo</label>
+    <input type="text" id="assetName" placeholder="Ex: SPX, AAPL, PETR4">
   </div>
 
-  <div class="panel">
-    <div class="grid">
-      <div>
-        <label>Preço Atual do Ativo</label>
-        <input type="number" id="price" step="0.01">
-      </div>
+  <div class="input-group">
+    <label>Preço Atual</label>
+    <input type="number" id="currentPrice" placeholder="Ex: 5000">
+  </div>
 
-      <div>
-        <label>Volatilidade Esperada (%)</label>
-        <input type="number" id="vol" step="0.01">
-      </div>
+  <div class="input-group">
+    <label>Data Futura</label>
+    <input type="date" id="futureDate">
+  </div>
 
-      <div>
-        <label>Data Futura (Vencimento)</label>
-        <input type="date" id="date">
-      </div>
+  <div class="input-group">
+    <label>Volatilidade Anual (%)</label>
+    <input type="number" id="volatility" placeholder="Ex: 20">
+  </div>
 
-      <div>
-        <label>Dias até o Vencimento (opcional)</label>
-        <input type="number" id="days">
-      </div>
-
-      <div>
-        <label>Nível Inferior (Target 1)</label>
-        <input type="number" id="t1" step="0.01">
-      </div>
-
-      <div>
-        <label>Nível Superior (Target 2)</label>
-        <input type="number" id="t2" step="0.01">
-      </div>
-
-      <div class="full">
-        <button onclick="calc()">Calcular Probabilidade</button>
-      </div>
+  <div class="targets">
+    <div class="input-group">
+      <label>Primeiro Alvo</label>
+      <input type="number" id="target1" placeholder="Ex: 4800">
+    </div>
+    <div class="input-group">
+      <label>Segundo Alvo</label>
+      <input type="number" id="target2" placeholder="Ex: 5200">
     </div>
   </div>
 
-  <div class="panel" id="output" style="display:none">
-    <h1 style="font-size:16px;margin-bottom:10px;">Desvio Padrão Esperado (σ)</h1>
-    <div class="sigma" id="sigmaBox"></div>
+  <button onclick="calculate()">Calcular Probabilidade</button>
 
-    <div class="result-box">
-      <div class="result red">
-        <h3>Fechar abaixo do nível inferior</h3>
-        <span id="pBelow">--%</span>
-      </div>
-
-      <div class="result green">
-        <h3>Fechar entre os níveis</h3>
-        <span id="pBetween">--%</span>
-      </div>
-
-      <div class="result yellow">
-        <h3>Fechar acima do nível superior</h3>
-        <span id="pAbove">--%</span>
-      </div>
-    </div>
+  <div class="result">
+    <h2 id="assetTitle"></h2>
+    <p id="probability" class="probability">—</p>
+    <p id="details"></p>
   </div>
 
-  <div class="footer">
-    Probabilidades estatísticas • Não constitui recomendação de investimento
-  </div>
 </div>
 
-<script>
-function erf(x){
-  const s = x >= 0 ? 1 : -1;
-  x = Math.abs(x);
-  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,
-        a4=-1.453152027,a5=1.061405429,p=0.3275911;
-  const t = 1/(1+p*x);
-  return s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));
-}
-function cdf(z){ return 0.5*(1+erf(z/Math.sqrt(2))); }
+<script src="script.js"></script>
+</body>
+</html>
 
-function calc(){
-  const S = +price.value;
-  const vol = +vol.value/100;
-  const t1v = +t1.value;
-  const t2v = +t2.value;
-
-  let d = days.value;
-  if(!d && date.value){
-    d = (new Date(date.value)-new Date())/(1000*60*60*24);
-  }
-  if(!S||!vol||!t1v||!t2v||!d) return;
-
-  const T = d/365;
-  const sigma = S*vol*Math.sqrt(T);
-
-  sigmaBox.innerHTML = [-3,-2,-1,1,2,3]
-    .map(n=>`<div>${n}σ<br>${(S+n*sigma).toFixed(2)}</div>`).join("");
-
-  const z1=(Math.min(t1v,t2v)-S)/sigma;
-  const z2=(Math.max(t1v,t2v)-S)/sigma;
-
-  pBelow.textContent=(cdf(z1)*100).toFixed(2)+"%";
-  pBetween.textContent=((cdf(z2)-cdf(z1))*100).toFixed(2)+"%";
-  pAbove.textContent=((1-cdf(z2))*100).toFixed(2)+"%";
-
-  output.style.display="block";
-}
 </script>
 
 </body>
