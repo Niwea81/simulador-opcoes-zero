@@ -38,6 +38,21 @@ iframe{width:100%;height:420px;border:none;border-radius:14px}
 <p style="color:#94a3b8">Compare com o gráfico antes de decidir.</p>
 </div>
 
+  <script>
+function avaliarGrafico(){
+  const ativo = document.getElementById("ativo").value;
+
+  graficoBox.innerHTML = `
+    <b>Leitura do Gráfico – ${ativo}</b><br>
+    Observe no gráfico acima:<br>
+    • Tendência ou consolidação<br>
+    • Relação com VWAP<br>
+    • Topos e fundos<br><br>
+    <small>O gráfico define o contexto, não o strike.</small>
+  `;
+}
+
+
   <div class="section">
   <h2>🧭 Construção Guiada de um Trade de Opções</h2>
   <p style="color:#94a3b8">Siga as etapas na ordem. Isso simula o raciocínio de um trader profissional.</p>
@@ -470,19 +485,6 @@ avaliarIV();
 </script>
 <div class="guided" id="graficoBox"></div>
 
-<script>
-function avaliarGrafico(){
-  const ativo = document.getElementById("ativo").value;
-
-  graficoBox.innerHTML = `
-    <b>Leitura do Gráfico – ${ativo}</b><br>
-    Observe no gráfico acima:<br>
-    • Tendência ou consolidação<br>
-    • Relação com VWAP<br>
-    • Topos e fundos<br><br>
-    <small>O gráfico define o contexto, não o strike.</small>
-  `;
-}
 
 document.getElementById("ativo").addEventListener("change", avaliarGrafico);
 avaliarGrafico();
