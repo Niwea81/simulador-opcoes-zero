@@ -223,126 +223,275 @@ showStep(1);
   <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculadora de Probabilidade</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background:#151a18;
-      color:#eee;
-      padding:20px;
-    }
-    input, button {
-      padding:8px;
-      margin:5px 0;
-      width:100%;
-    }
-    button {
-      background:#2ecc71;
-      border:none;
-      cursor:pointer;
-      font-weight:bold;
-    }
-    .box {
-      max-width:420px;
-      margin:auto;
-      background:#1f2523;
-      padding:20px;
-      border-radius:8px;
-    }
-    .result {
-      margin-top:15px;
-      background:#111;
-      padding:10px;
-      border-radius:6px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Calculadora de Probabilidade | Opções</title>
+
+<style>
+:root {
+  --bg: #0f1311;
+  --panel: #161c19;
+  --border: #27302c;
+  --text: #e6e6e6;
+  --muted: #9aa3a0;
+  --green: #2ecc71;
+  --yellow: #f1c40f;
+  --red: #e74c3c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, Arial, sans-serif;
+  padding: 30px;
+}
+
+.container {
+  max-width: 880px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 25px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+label {
+  font-size: 13px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  background: #0c100e;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: var(--green);
+  border: none;
+  border-radius: 8px;
+  color: #0b0f0d;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.result-box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.result {
+  padding: 14px;
+  border-radius: 8px;
+  background: #0c100e;
+  border-left: 5px solid;
+}
+
+.green { border-color: var(--green); }
+.yellow { border-color: var(--yellow); }
+.red { border-color: var(--red); }
+
+.result h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.result span {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.sigma {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sigma div {
+  background: #0c100e;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.footer {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 20px;
+}
+</style>
 </head>
+
 <body>
 
-<div class="box" id="calculator">
-  <h2>Calculadora de Probabilidade</h2>
+<div class="container">
+  <h1>Calculadora de Probabilidade Estatística</h1>
+  <div class="subtitle">
+    Ferramenta educacional para avaliação de risco em operações com opções
+  </div>
 
-  <label>Current Price</label>
-  <input type="number" id="price" step="0.01">
+  <div class="panel">
+    <div class="grid">
+      <div>
+        <label>Preço Atual do Ativo</label>
+        <input type="number" id="price" step="0.01">
+      </div>
 
-  <label>Future Date</label>
-  <input type="date" id="futureDate">
+      <div>
+        <label>Volatilidade Esperada (%)</label>
+        <input type="number" id="vol" step="0.01">
+      </div>
 
-  <label>Days Ahead (opcional)</label>
-  <input type="number" id="daysAhead">
+      <div>
+        <label>Data Futura (Vencimento)</label>
+        <input type="date" id="date">
+      </div>
 
-  <label>Future Volatility (%)</label>
-  <input type="number" id="volatility" step="0.01">
+      <div>
+        <label>Dias até o Vencimento (opcional)</label>
+        <input type="number" id="days">
+      </div>
 
-  <label>First Target</label>
-  <input type="number" id="target1" step="0.01">
+      <div>
+        <label>Nível Inferior (Target 1)</label>
+        <input type="number" id="t1" step="0.01">
+      </div>
 
-  <label>Second Target</label>
-  <input type="number" id="target2" step="0.01">
+      <div>
+        <label>Nível Superior (Target 2)</label>
+        <input type="number" id="t2" step="0.01">
+      </div>
 
-  <button onclick="calculate()">Click here to calculate</button>
+      <div class="full">
+        <button onclick="calc()">Calcular Probabilidade</button>
+      </div>
+    </div>
+  </div>
 
-  <div class="result" id="output"></div>
+  <div class="panel" id="output" style="display:none">
+    <h1 style="font-size:16px;margin-bottom:10px;">Desvio Padrão Esperado (σ)</h1>
+    <div class="sigma" id="sigmaBox"></div>
+
+    <div class="result-box">
+      <div class="result red">
+        <h3>Fechar abaixo do nível inferior</h3>
+        <span id="pBelow">--%</span>
+      </div>
+
+      <div class="result green">
+        <h3>Fechar entre os níveis</h3>
+        <span id="pBetween">--%</span>
+      </div>
+
+      <div class="result yellow">
+        <h3>Fechar acima do nível superior</h3>
+        <span id="pAbove">--%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Probabilidades estatísticas • Não constitui recomendação de investimento
+  </div>
 </div>
 
 <script>
-function normalCDF(z) {
-  return 0.5 * (1 + erf(z / Math.sqrt(2)));
-}
-
-function erf(x) {
-  const sign = (x >= 0) ? 1 : -1;
+function erf(x){
+  const s = x >= 0 ? 1 : -1;
   x = Math.abs(x);
-  const a1=0.254829592, a2=-0.284496736, a3=1.421413741,
-        a4=-1.453152027, a5=1.061405429, p=0.3275911;
-  const t = 1 / (1 + p * x);
-  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
-  return sign * y;
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,
+        a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const t = 1/(1+p*x);
+  return s*(1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));
 }
+function cdf(z){ return 0.5*(1+erf(z/Math.sqrt(2))); }
 
-function calculate() {
-  const S = parseFloat(price.value);
-  const vol = parseFloat(volatility.value) / 100;
-  const t1 = parseFloat(target1.value);
-  const t2 = parseFloat(target2.value);
+function calc(){
+  const S = +price.value;
+  const vol = +vol.value/100;
+  const t1v = +t1.value;
+  const t2v = +t2.value;
 
-  let days;
-  if (daysAhead.value) {
-    days = parseFloat(daysAhead.value);
-  } else if (futureDate.value) {
-    const today = new Date();
-    const future = new Date(futureDate.value);
-    days = (future - today) / (1000*60*60*24);
-  } else {
-    alert("Informe a data futura ou os dias à frente.");
-    return;
+  let d = days.value;
+  if(!d && date.value){
+    d = (new Date(date.value)-new Date())/(1000*60*60*24);
   }
+  if(!S||!vol||!t1v||!t2v||!d) return;
 
-  const T = days / 365;
-  const sigmaPrice = S * vol * Math.sqrt(T);
+  const T = d/365;
+  const sigma = S*vol*Math.sqrt(T);
 
-  const z1 = (t1 - S) / sigmaPrice;
-  const z2 = (t2 - S) / sigmaPrice;
+  sigmaBox.innerHTML = [-3,-2,-1,1,2,3]
+    .map(n=>`<div>${n}σ<br>${(S+n*sigma).toFixed(2)}</div>`).join("");
 
-  const pBelow = normalCDF(Math.min(z1, z2)) * 100;
-  const pBetween = (normalCDF(Math.max(z1, z2)) - normalCDF(Math.min(z1, z2))) * 100;
-  const pAbove = (1 - normalCDF(Math.max(z1, z2))) * 100;
+  const z1=(Math.min(t1v,t2v)-S)/sigma;
+  const z2=(Math.max(t1v,t2v)-S)/sigma;
 
-  output.innerHTML = `
-    <b>Price at Each Standard Deviation</b><br>
-    -3σ: ${(S - 3*sigmaPrice).toFixed(2)}<br>
-    -2σ: ${(S - 2*sigmaPrice).toFixed(2)}<br>
-    -1σ: ${(S - sigmaPrice).toFixed(2)}<br>
-    +1σ: ${(S + sigmaPrice).toFixed(2)}<br>
-    +2σ: ${(S + 2*sigmaPrice).toFixed(2)}<br>
-    +3σ: ${(S + 3*sigmaPrice).toFixed(2)}<hr>
-    <b>Probabilities</b><br>
-    Finishing below lowest target: <b>${pBelow.toFixed(2)}%</b><br>
-    Finishing between two targets: <b>${pBetween.toFixed(2)}%</b><br>
-    Finishing above highest target: <b>${pAbove.toFixed(2)}%</b>
-  `;
+  pBelow.textContent=(cdf(z1)*100).toFixed(2)+"%";
+  pBetween.textContent=((cdf(z2)-cdf(z1))*100).toFixed(2)+"%";
+  pAbove.textContent=((1-cdf(z2))*100).toFixed(2)+"%";
+
+  output.style.display="block";
 }
+</script>
+
+</body>
+</html>
+
 </script>
 
 </body>
