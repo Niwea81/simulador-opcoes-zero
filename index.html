@@ -220,6 +220,38 @@ showStep(1);
   <div id="feedbackChecklist" class="note" style="display:none"></div>
 </div>
 
+  <section class="spread-calculator">
+  <h2>🧮 Calculadora de Probabilidade – Spread</h2>
+
+  <label>Ativo</label>
+  <input type="text" id="spreadAsset" placeholder="Ex: XSP">
+
+  <label>Tipo de Spread</label>
+  <select id="spreadType">
+    <option value="put">Put Credit Spread</option>
+    <option value="call">Call Credit Spread</option>
+  </select>
+
+  <label>Preço Atual</label>
+  <input type="number" id="spreadPrice">
+
+  <label>Strike Vendido</label>
+  <input type="number" id="shortStrike">
+
+  <label>Dias até o Vencimento (DTE)</label>
+  <input type="number" id="dte">
+
+  <label>Volatilidade Implícita (%)</label>
+  <input type="number" id="iv" step="0.1">
+
+  <button onclick="calculateSpread()">Calcular Probabilidade</button>
+
+  <div class="spread-result">
+    <p>📈 Probabilidade estimada de ganho:</p>
+    <span id="spreadProb">--%</span>
+  </div>
+</section>
+
   <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
