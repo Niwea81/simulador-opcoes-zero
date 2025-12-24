@@ -320,3 +320,131 @@ ajustarEstrutura();autoStrike();
 </body
   
 </html>
+
+
+<div class="section">
+  <h2>🧭 Construção Guiada de um Trade de Opções</h2>
+  <p style="color:#94a3b8">Siga as etapas na ordem. Isso simula o raciocínio de um trader profissional.</p>
+
+  <!-- ETAPAS -->
+  <div class="steps">
+    <button class="step active" onclick="showStep(1)">1️⃣ Ambiente</button>
+    <button class="step" onclick="showStep(2)">2️⃣ Volatilidade</button>
+    <button class="step" onclick="showStep(3)">3️⃣ Gráfico</button>
+    <button class="step" onclick="showStep(4)">4️⃣ Direção</button>
+    <button class="step" onclick="showStep(5)">5️⃣ Estrutura</button>
+    <button class="step" onclick="showStep(6)">6️⃣ Strike</button>
+    <button class="step" onclick="showStep(7)">7️⃣ Validação</button>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <div id="stepContent" class="guided"></div>
+</div>
+
+<style>
+.steps {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:20px;
+}
+.step {
+  padding:10px;
+  border-radius:10px;
+  background:#020617;
+  color:#94a3b8;
+  border:1px solid #1e293b;
+  cursor:pointer;
+  font-size:13px;
+}
+.step.active {
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+}
+</style>
+
+<script>
+function showStep(n){
+  document.querySelectorAll(".step").forEach((b,i)=>{
+    b.classList.toggle("active", i===n-1);
+  });
+
+  const content = {
+    1: `
+      <h3>🌍 Ambiente de Mercado</h3>
+      <p>Existe evento econômico relevante hoje (3⭐)?</p>
+      <ul>
+        <li>FOMC, CPI, Payroll</li>
+        <li>Resultados relevantes</li>
+      </ul>
+      <p><b>Regra:</b> Ambiente hostil → não forçar trade.</p>
+    `,
+    2: `
+      <h3>🌪️ Volatilidade</h3>
+      <p>Antes de CALL ou PUT, avalie:</p>
+      <ul>
+        <li>IV está baixa, média ou alta?</li>
+        <li>IV Rank confirma?</li>
+        <li>VIX acima de 20 indica stress</li>
+      </ul>
+      <p><b>Regra:</b> IV baixa → compra | IV alta → venda</p>
+    `,
+    3: `
+      <h3>📈 Estrutura do Gráfico</h3>
+      <p>O preço está:</p>
+      <ul>
+        <li>Em tendência?</li>
+        <li>Em consolidação?</li>
+        <li>Retornando à VWAP?</li>
+      </ul>
+      <p><b>Regra:</b> Opções sofrem em mercado sem estrutura.</p>
+    `,
+    4: `
+      <h3>🧭 Viés Direcional</h3>
+      <p>Somente agora defina:</p>
+      <ul>
+        <li>Alta</li>
+        <li>Baixa</li>
+        <li>Neutro</li>
+      </ul>
+      <p><b>Regra:</b> Direção vem depois do contexto.</p>
+    `,
+    5: `
+      <h3>🧱 Estrutura de Opções</h3>
+      <p>Escolha a estrutura, não o strike:</p>
+      <ul>
+        <li>Compra ou venda?</li>
+        <li>Risco definido ou ilimitado?</li>
+        <li>Spread ou posição simples?</li>
+      </ul>
+      <p><b>Aviso:</b> Vendas exigem margem ou ativo.</p>
+    `,
+    6: `
+      <h3>🎯 Strike & Moneyness</h3>
+      <p>Agora sim:</p>
+      <ul>
+        <li>ITM → maior probabilidade</li>
+        <li>ATM → equilíbrio</li>
+        <li>OTM → menor custo / menor chance</li>
+      </ul>
+      <p><b>Regra:</b> Strike define probabilidade, não opinião.</p>
+    `,
+    7: `
+      <h3>✅ Validação Final</h3>
+      <ul>
+        <li>POP ≥ 70%</li>
+        <li>Risco máximo conhecido</li>
+        <li>Payoff faz sentido?</li>
+      </ul>
+      <p style="color:#22c55e"><b>Se tudo ok:</b> Simulação educacional liberada.</p>
+      <p style="color:#f87171"><b>Se não:</b> Trade rejeitado.</p>
+    `
+  };
+
+  document.getElementById("stepContent").innerHTML = content[n];
+}
+
+showStep(1);
+</script>
+
