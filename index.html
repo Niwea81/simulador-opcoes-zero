@@ -180,6 +180,33 @@ function desenharPayoff(S0,e,s){
 ajustarEstrutura();autoStrike();
 </script>
 
+  <div class="note" id="ambienteBox"></div>
+
+<script>
+function avaliarAmbiente(){
+  // valor didático (pode virar input depois)
+  const vix = 18;
+
+  let msg="", cor="";
+  if(vix < 15){
+    msg = "🟢 Ambiente calmo (VIX baixo). Risco controlado.";
+    cor = "#22c55e";
+  } else if(vix < 20){
+    msg = "🟡 Ambiente normal. Atenção à volatilidade.";
+    cor = "#facc15";
+  } else {
+    msg = "🔴 Ambiente estressado (VIX alto). Evite forçar trades.";
+    cor = "#ef4444";
+  }
+
+  ambienteBox.style.borderLeft = `4px solid ${cor}`;
+  ambienteBox.innerHTML = `<b>Ambiente de Mercado</b><br>${msg}<br><small>VIX simulado: ${vix}</small>`;
+}
+
+avaliarAmbiente();
+</script>
+
+
 </body>
 </html>
 
