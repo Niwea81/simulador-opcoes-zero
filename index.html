@@ -377,6 +377,116 @@ function showStep(n){
 showStep(1);
 </script>
 
+<!-- CHECKLIST EDUCACIONAL -->
+<div class="section">
+  <h2>🧠 Checklist Educacional antes da Estrutura</h2>
+  <p style="color:#94a3b8">
+    Responda com honestidade. O objetivo é aprender a filtrar trades ruins.
+  </p>
+
+  <!-- BLOCO 1 -->
+  <h3>1️⃣ Contexto de Mercado</h3>
+  <label><input type="checkbox" class="chk contexto" value="alta"> Tendência de alta</label>
+  <label><input type="checkbox" class="chk contexto" value="baixa"> Tendência de baixa</label>
+  <label><input type="checkbox" class="chk contexto" value="lateral"> Mercado lateral / consolidação</label>
+
+  <!-- BLOCO 2 -->
+  <h3>2️⃣ Volatilidade & Ambiente</h3>
+  <label><input type="checkbox" class="chk vol" value="iv_baixa"> IV abaixo da média histórica</label>
+  <label><input type="checkbox" class="chk vol" value="iv_media"> IV próxima da média</label>
+  <label><input type="checkbox" class="chk vol" value="iv_alta"> IV acima da média</label>
+
+  <label><input type="checkbox" class="chk vol" value="vix_alto"> VIX acima de 20</label>
+  <label><input type="checkbox" class="chk vol" value="evento"> Evento relevante próximo (3⭐)</label>
+
+  <!-- BLOCO 3 -->
+  <h3>3️⃣ Perfil do Trader</h3>
+  <label><input type="radio" name="perfil" value="iniciante"> Iniciante</label>
+  <label><input type="radio" name="perfil" value="moderado"> Moderado</label>
+  <label><input type="radio" name="perfil" value="agressivo"> Agressivo</label>
+
+  <!-- BLOCO 4 -->
+  <h3>4️⃣ Consistência</h3>
+  <label><input type="checkbox" id="pop70"> POP estimada ≥ 70%</label>
+  <label><input type="checkbox" id="risco"> Risco máximo conhecido</label>
+
+  <button onclick="avaliarChecklist()">📊 Avaliar Checklist</button>
+
+  <div id="feedbackChecklist" class="note" style="display:none"></div>
+</div>
+
+<script>
+function avaliarChecklist() {
+  const feedback = document.getElementById("feedbackChecklist");
+  feedback.style.display = "block";
+
+  const contexto = document.querySelectorAll(".contexto:checked").length;
+  const volAlta = document.querySelector(".vol[value='iv_alta']")?.checked;
+  const evento = document.querySelector(".vol[value='evento']")?.checked;
+  const perfil = document.querySelector("input[name='perfil']:checked")?.value;
+  const popOk = document.getElementById("pop70").checked;
+  const riscoOk = document.getElementById("risco").checked;
+
+  // Regras educacionais
+  if (!perfil) {
+    feedback.innerHTML = "⚠️ Escolha seu perfil antes de continuar.";
+    return;
+  }
+
+  if (contexto === 0) {
+    feedback.innerHTML = "⚠️ Contexto indefinido. Evite estruturar opções sem viés claro.";
+    return;
+  }
+
+  if (evento) {
+    feedback.innerHTML = "⚠️ Evento relevante próximo. A volatilidade pode mudar tudo.";
+    return;
+  }
+
+  if (!popOk || !riscoOk) {
+    feedback.innerHTML = "❌ Estrutura reprovada. Probabilidade ou risco insuficientes.";
+    return;
+  }
+
+  // Sugestões educacionais (sem recomendação)
+  let exemplo = "";
+
+  if (perfil === "iniciante") {
+    exemplo = `
+      🟢 <b>Exemplos educacionais compatíveis:</b><br>
+      • Bull Call Spread<br>
+      • Bear Put Spread<br>
+      • Call comprada ITM<br><br>
+      ❌ Evite vendas secas e risco ilimitado.
+    `;
+  }
+
+  if (perfil === "moderado") {
+    exemplo = `
+      🟡 <b>Exemplos educacionais compatíveis:</b><br>
+      • Debit spreads<br>
+      • Call ou Put ATM<br>
+      • Estruturas com risco definido
+    `;
+  }
+
+  if (perfil === "agressivo") {
+    exemplo = `
+      🔴 <b>Exemplos educacionais compatíveis:</b><br>
+      • Put vendida OTM<br>
+      • Call vendida coberta<br>
+      ⚠️ Exige margem, disciplina e controle emocional
+    `;
+  }
+
+  feedback.innerHTML = `
+    ✅ Checklist aprovado para estudo.<br><br>
+    ${exemplo}
+    <br>
+    <small>Exemplo educacional. Não constitui recomendação de investimento.</small>
+  `;
+}
+</script>
 
 </body>
 </html>
