@@ -206,6 +206,52 @@ function avaliarAmbiente(){
 avaliarAmbiente();
 </script>
 
+  <div class="note" id="ivBox"></div>
+
+<script>
+function avaliarIV(){
+  const iv = +document.getElementById("iv").value;
+  let msg="", cor="";
+
+  if(iv < 18){
+    msg = "🟢 IV baixa → volatilidade barata → favorece compras.";
+    cor = "#22c55e";
+  } else if(iv < 30){
+    msg = "🟡 IV média → spreads tendem a funcionar melhor.";
+    cor = "#facc15";
+  } else {
+    msg = "🔴 IV alta → prêmios caros → favorece vendas.";
+    cor = "#ef4444";
+  }
+
+  ivBox.style.borderLeft = `4px solid ${cor}`;
+  ivBox.innerHTML = `<b>Regime de Volatilidade</b><br>${msg}<br><small>IV atual: ${iv}%</small>`;
+}
+
+document.getElementById("iv").addEventListener("input", avaliarIV);
+avaliarIV();
+</script>
+<div class="guided" id="graficoBox"></div>
+
+<script>
+function avaliarGrafico(){
+  const ativo = document.getElementById("ativo").value;
+
+  graficoBox.innerHTML = `
+    <b>Leitura do Gráfico – ${ativo}</b><br>
+    Observe no gráfico acima:<br>
+    • Tendência ou consolidação<br>
+    • Relação com VWAP<br>
+    • Topos e fundos<br><br>
+    <small>O gráfico define o contexto, não o strike.</small>
+  `;
+}
+
+document.getElementById("ativo").addEventListener("change", avaliarGrafico);
+avaliarGrafico();
+</script>
+
+
 
 </body>
 </html>
